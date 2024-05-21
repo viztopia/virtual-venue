@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+</head>
+
+<body>
+  <!-- <video id="video" controls></video> -->
+  <div class="video-container">
+    <video id="video"></video>
+    <video id="video2"></video>
+  </div>
+
+  <script>
+    const videoInfo = [
+      {
+        hlsManifest: "assets/hls-videos/1/hls/manifest.m3u8",
+        duration: 154.366259,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/2/hls/manifest.m3u8",
+        duration: 75.541333,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/3/hls/manifest.m3u8",
+        duration: 60.393667,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/4/hls/manifest.m3u8",
+        duration: 9.05,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/5/hls/manifest.m3u8",
+        duration: 170.033333,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+    ];
+    const videoInfo2 = [
+    {
+        hlsManifest: "assets/hls-videos/6/hls/manifest.m3u8",
+        duration: 248.533333,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/7/hls/manifest.m3u8",
+        duration: 121.95,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/8/hls/manifest.m3u8",
+        duration: 54.120733,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/9/hls/manifest.m3u8",
+        duration: 149.782967,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+      {
+        hlsManifest: "assets/hls-videos/10/hls/manifest.m3u8",
+        duration: 24.066667,
+        artist: "Excha Pluwn",
+        description: "a work of folly",
+      },
+    ];
+    const videoEl = document.getElementById("video");
+    const videoEl2 = document.getElementById("video2");
+
+
+    const startTime = new Date(1990, 8, 19, 12, 12, 0);
+    let socket = window.parent.socket;
+
+    const baseURL = "http://localhost:3000/";
+
+    // keep track of if we've initialized some values;
+    let initialized = false;
+    let currentlyPlayingVideoIndex = -1;
+    let currentlyPlayingVideoIndex2 = -1;
+
+    // let's keep track of a serverTimeOffset value which will
+    // be the difference between local (client) time and the
+    // server's clock
+    let serverTimeOffset = 0;
+    function calculateServerTimeOffset(serverTime) {
+      const clientTime = Date.now();
+      const timeOffset = serverTime - clientTime;
+      console.log("Server Time Offset:", timeOffset);
+      return timeOffset;
+    }
+
+    socket.on("serverTime", ({ serverTime }) => {
+      serverTimeOffset = calculateServerTimeOffset(serverTime);
+      if (!initialized) {
+        console.log("initializing!!!!!!!!")
+        console.log(videoInfo);
+        updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex);
+        updateVideoPlayer(videoInfo2, videoEl2, currentlyPlayingVideoIndex2);
+        initialized = true;
+      }
+    });
+
+    function updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex) {
+      // calculate the total length of the loop in MS
+      let totalLengthOfLoop = 0;
+      videoInfo.forEach((video) => {
+        totalLengthOfLoop += video.duration * 1000;
+      });
+
+      // calculate where we are in the loop based on the startTime and current serverTime
+      const calculatedServerTime = Date.now() + serverTimeOffset;
+      const elapsedTimeOnServer = calculatedServerTime - startTime; // Calculate elapsed time
+      const positionInLoop = elapsedTimeOnServer % totalLengthOfLoop; // Calculate position within the loop
+      console.log({ elapsedTimeOnServer, positionInLoop });
+
+      // calculate which video to play based on the above
+      let startOffset = 0;
+      let videoToPlayIndex = -1;
+      for (let i = 0; i < videoInfo.length; i++) {
+        if (positionInLoop < startOffset + videoInfo[i].duration * 1000) {
+          videoToPlayIndex = i;
+          break;
+        }
+        startOffset += videoInfo[i].duration * 1000;
+      }
+      console.log({ videoToPlayIndex });
+
+      // calculate where in the video to play
+      let durationBeforeDesiredVideo = 0;
+      for (let j = 0; j < videoToPlayIndex; j++) {
+        durationBeforeDesiredVideo += videoInfo[j].duration * 1000;
+      }
+      let positionInDesiredVideo = positionInLoop - durationBeforeDesiredVideo;
+      console.log({ positionInDesiredVideo });
+
+      // set videoplayer to play the desired video with the desired position
+      const localPlaybackPosition =
+        (positionInDesiredVideo + serverTimeOffset) / 1000;
+      updateHLSPlayback(videoInfo, videoToPlayIndex, localPlaybackPosition, videoEl, currentlyPlayingVideoIndex);
+    }
+
+    function updateHLSPlayback(videoInfo, desiredVideoIndex, positionInDesiredVideo, videoEl, currentlyPlayingVideoIndex) {
+      // don't swap videos if we're already playing the right one
+      if (desiredVideoIndex === currentlyPlayingVideoIndex) return;
+
+      console.log("updating video element");
+
+      const videoData = videoInfo[desiredVideoIndex];
+      if (hls) {
+        hls.destroy();
+      }
+      var hls = new Hls();
+      hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+        console.log("video and hls.js are now bound together !");
+      });
+      hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+        console.log(
+          "manifest loaded, found " + data.levels.length + " quality level",
+        );
+      });
+      hls.loadSource(baseURL + videoData.hlsManifest);
+      // bind them together
+      hls.attachMedia(videoEl);
+
+      // When the video metadata is loaded, set the playback start time
+      const handleMetadataLoaded = () => {
+        videoEl.currentTime = positionInDesiredVideo;
+        videoEl.play();
+        currentlyPlayingVideoIndex = desiredVideoIndex;
+      };
+
+      videoEl.addEventListener("loadedmetadata", handleMetadataLoaded);
+
+      const handleVideoEnded = () => {
+        console.log("videoEnded");
+        updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex);
+      };
+      videoEl.addEventListener("ended", handleVideoEnded);
+    }
+
+
+  </script>
+</body>
+
+</html>
