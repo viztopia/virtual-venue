@@ -1,0 +1,63 @@
+{
+    "_id": {
+        "$oid": "658b3ea793b0d3c1d4cff518"
+    },
+    "stageId": "123",
+    "creator": "b73fcf02-13f1-4a44-9926-8bcabeeed25d",
+    "editors": [
+        "b73fcf02-13f1-4a44-9926-8bcabeeed25d"
+    ],
+    "name": "123",
+    "description": "",
+    "urlSlug": "123",
+    "features": [
+        {
+            "type": "scriptableObject",
+            "id": "3acc790d-0ef0-4670-b900-e787d9dfec91",
+            "files": [
+                {
+                    "name": "style.css",
+                    "language": "css",
+                    "value": "html, body {}\n      "
+                },
+                {
+                    "name": "index.html",
+                    "language": "html",
+                    "value": "<!DOCTYPE html>...</html>\r\n      "
+                },
+                {
+                    "name": "script.js",
+                    "language": "javascript",
+                    "value": "\r\nfunction setup() {...}\r\n"
+                }
+            ],
+            "name": "test-sketch-1",
+            "active": false
+        },
+        {
+            "type": "scriptableObject",
+            "id": "e921f642-a7dc-4433-aece-e9a8427c3f55",
+            "files": [
+                {
+                    "name": "style.css",
+                    "language": "css",
+                    "value": "html, body {}\n      "
+                },
+                {
+                    "name": "index.html",
+                    "language": "html",
+                    "value": "<!DOCTYPE html>...</html>\r\n      "
+                },
+                {
+                    "name": "script.js",
+                    "language": "javascript",
+                    "value": "\r\nfunction setup() {...}\r\n"
+                }
+            ],
+            "name": "test-sketch-2",
+            "active": true
+        }
+    ],
+    "cues": [],
+    "staticFiles": []
+}

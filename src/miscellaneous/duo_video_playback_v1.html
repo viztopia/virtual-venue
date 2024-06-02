@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <style>
+    .video-container {
+      display: flex;
+      justify-content: space-between;
+      cursor: pointer;
+      height: 100vh;
+      /* Set the height to 100% of the viewport height */
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 50%;
+    }
+
+    #video,
+    #video2 {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+
+    .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 1);
+      transition: opacity 0.5s;
+    }
+
+    #mask1 {
+      opacity: 0;
+    }
+
+    #mask2 {
+      opacity: 0.8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="video-container">
+    <div class="video-wrapper" id="video1-wrapper">
+      <video id="video"></video>
+      <div class="mask" id="mask1"></div>
+    </div>
+    <div class="video-wrapper" id="video2-wrapper">
+      <video id="video2" muted></video>
+      <div class="mask" id="mask2"></div>
+    </div>
+  </div>
+
+  <script>
+    const videoInfo = [
+      {
+        "hlsManifest": "assets/refest2024/001/hls/manifest.m3u8",
+        "duration": 89.907664,
+        "country": "Romania, Estonia, Japan",
+        "name": "IIOANA & Naoto Hieda",
+        "title": "IIOANA - AQUA PARK (underground demo music video)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/002/hls/manifest.m3u8",
+        "duration": 540.12,
+        "country": "Serbia",
+        "name": "Milica Denković",
+        "title": "Heavy Shots: Severe Period Pain Simulator",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/003/hls/manifest.m3u8",
+        "duration": 16.057708,
+        "country": "Uganda",
+        "name": "Evans Akanyijuka",
+        "title": "Symbiosis of dreams -Tai tai",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/004/hls/manifest.m3u8",
+        "duration": 153.6,
+        "country": "Germany",
+        "name": "Irena Paskali",
+        "title": "Compassion with the Earth",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/005/hls/manifest.m3u8",
+        "duration": 142.0419,
+        "country": "England",
+        "name": "Alessandro Paiano",
+        "title": "2:22no23",
+        "contentWarning": "flashing lights"
+      },
+      {
+        "hlsManifest": "assets/refest2024/006/hls/manifest.m3u8",
+        "duration": 425.466708,
+        "country": "Germany",
+        "name": "Heiko Kalmbach",
+        "title": "Troubled Mind",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/007/hls/manifest.m3u8",
+        "duration": 505.0,
+        "country": "France",
+        "name": "Robert Cahen and Nicolas Vérin",
+        "title": "Ceremonies",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/008/hls/manifest.m3u8",
+        "duration": 180.0,
+        "country": "South Korea",
+        "name": "Dasul Kim",
+        "title": "Swimming in the Void",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/009/hls/manifest.m3u8",
+        "duration": 198.2,
+        "country": "Germany",
+        "name": "Irena Paskali",
+        "title": "Inconceivable time",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/010/hls/manifest.m3u8",
+        "duration": 58.233333,
+        "country": "Italy",
+        "name": "Alessandro Destro",
+        "title": "STOP RADIOACTIVITY",
+        "contentWarning": ""
+      },
+    ];
+    const videoInfo2 = [
+      {
+        "hlsManifest": "assets/refest2024/011/hls/manifest.m3u8",
+        "duration": 181.806146,
+        "country": "Greece",
+        "name": "Chris Pavlakis",
+        "title": "In/Visible",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/012/hls/manifest.m3u8",
+        "duration": 194.633333,
+        "country": "Canada",
+        "name": "Nick Fox-Gieg and Meagan Williams",
+        "title": "Traffic Flow III",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/013/hls/manifest.m3u8",
+        "duration": 216.48,
+        "country": "Romania",
+        "name": "Alex Pașca",
+        "title": "Expanding your database",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/014/hls/manifest.m3u8",
+        "duration": 44.5445,
+        "country": "Cambodia",
+        "name": "Siden KONG",
+        "title": "Reminiscence",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/015/hls/manifest.m3u8",
+        "duration": 398.598208,
+        "country": "India, United Kingdom",
+        "name": "Harmeet Singh Rahal",
+        "title": "Second-Hand Spectres",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/016/hls/manifest.m3u8",
+        "duration": 291.866667,
+        "country": "Jamaica",
+        "name": "Casper Plummer",
+        "title": "Look Here",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/017/hls/manifest.m3u8",
+        "duration": 376.361667,
+        "country": "China",
+        "name": "Caiyi Feng",
+        "title": "We Will Eventually Lose the Ability to Reason 我们终将失去理智",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/018/hls/manifest.m3u8",
+        "duration": 157.014,
+        "country": "Netherlands",
+        "name": "Luan Machado - Paris Blues",
+        "title": "“R”",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/019/hls/manifest.m3u8",
+        "duration": 198.28,
+        "country": "Germany",
+        "name": "ReVerse Bullets feat. Jamika Ajalon",
+        "title": "\"Replikant\"",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/021/hls/manifest.m3u8",
+        "duration": 393.92,
+        "country": "Hong Kong",
+        "name": "CHAN CHEUK SZE",
+        "title": "No brightness in the City",
+        "contentWarning": ""
+      },
+    ];
+    const videoEl = document.getElementById("video");
+    const videoEl2 = document.getElementById("video2");
+
+    const videoElWrapper = document.getElementById("video1-wrapper");
+    const videoEl2Wrapper = document.getElementById("video2-wrapper");
+
+    const startTime = new Date(1990, 8, 19, 12, 12, 0);
+    let socket = window.parent.socket;
+
+    // const baseURL = "https://venue.livelab.app/";
+    const baseURL = "http://localhost:3000/";
+
+    // keep track of if we've initialized some values;
+    let initialized = false;
+    let currentlyPlayingVideoIndex = -1;
+    let currentlyPlayingVideoIndex2 = -1;
+
+    // let's keep track of a serverTimeOffset value which will
+    // be the difference between local (client) time and the
+    // server's clock
+    let serverTimeOffset = 0;
+    function calculateServerTimeOffset(serverTime) {
+      const clientTime = Date.now();
+      const timeOffset = serverTime - clientTime;
+      console.log("Server Time Offset:", timeOffset);
+      return timeOffset;
+    }
+
+    socket.on("serverTime", ({ serverTime }) => {
+      serverTimeOffset = calculateServerTimeOffset(serverTime);
+      if (!initialized) {
+        console.log("initializing!!!!!!!!")
+        console.log(videoInfo);
+        updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex);
+        updateVideoPlayer(videoInfo2, videoEl2, currentlyPlayingVideoIndex2);
+        initialized = true;
+      }
+    });
+
+    function updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex) {
+      // calculate the total length of the loop in MS
+      let totalLengthOfLoop = 0;
+      videoInfo.forEach((video) => {
+        totalLengthOfLoop += video.duration * 1000;
+      });
+
+      // calculate where we are in the loop based on the startTime and current serverTime
+      const calculatedServerTime = Date.now() + serverTimeOffset;
+      const elapsedTimeOnServer = calculatedServerTime - startTime; // Calculate elapsed time
+      const positionInLoop = elapsedTimeOnServer % totalLengthOfLoop; // Calculate position within the loop
+      console.log({ elapsedTimeOnServer, positionInLoop });
+
+      // calculate which video to play based on the above
+      let startOffset = 0;
+      let videoToPlayIndex = -1;
+      for (let i = 0; i < videoInfo.length; i++) {
+        if (positionInLoop < startOffset + videoInfo[i].duration * 1000) {
+          videoToPlayIndex = i;
+          break;
+        }
+        startOffset += videoInfo[i].duration * 1000;
+      }
+      console.log({ videoToPlayIndex });
+
+      // calculate where in the video to play
+      let durationBeforeDesiredVideo = 0;
+      for (let j = 0; j < videoToPlayIndex; j++) {
+        durationBeforeDesiredVideo += videoInfo[j].duration * 1000;
+      }
+      let positionInDesiredVideo = positionInLoop - durationBeforeDesiredVideo;
+      console.log({ positionInDesiredVideo });
+
+      // set videoplayer to play the desired video with the desired position
+      const localPlaybackPosition =
+        (positionInDesiredVideo + serverTimeOffset) / 1000;
+      updateHLSPlayback(videoInfo, videoToPlayIndex, localPlaybackPosition, videoEl, currentlyPlayingVideoIndex);
+    }
+
+    function updateHLSPlayback(videoInfo, desiredVideoIndex, positionInDesiredVideo, videoEl, currentlyPlayingVideoIndex) {
+      // don't swap videos if we're already playing the right one
+      if (desiredVideoIndex === currentlyPlayingVideoIndex) return;
+
+      console.log("updating video element");
+
+      const videoData = videoInfo[desiredVideoIndex];
+      if (hls) {
+        hls.destroy();
+      }
+      var hls = new Hls();
+      hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+        console.log("video and hls.js are now bound together !");
+      });
+      hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+        console.log(
+          "manifest loaded, found " + data.levels.length + " quality level",
+        );
+      });
+      hls.loadSource(baseURL + videoData.hlsManifest);
+      // bind them together
+      hls.attachMedia(videoEl);
+
+      // When the video metadata is loaded, set the playback start time
+      const handleMetadataLoaded = () => {
+        videoEl.currentTime = positionInDesiredVideo;
+        videoEl.play();
+        currentlyPlayingVideoIndex = desiredVideoIndex;
+      };
+
+      videoEl.addEventListener("loadedmetadata", handleMetadataLoaded);
+
+      const handleVideoEnded = () => {
+        console.log("videoEnded");
+        updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex);
+      };
+      videoEl.addEventListener("ended", handleVideoEnded);
+    }
+
+    videoEl.addEventListener("mouseover", hoverVideo);
+    videoEl2.addEventListener("mouseover", hoverVideo);
+
+    function hoverVideo(e) {
+      console.log('Mouse is over the video');
+    }
+
+    const mask1 = document.getElementById("mask1");
+    const mask2 = document.getElementById("mask2");
+
+    function toggleVideos(event) {
+      console.log('Video was clicked');
+      // Check which video was clicked
+      const clickedVideoWrapper = event.currentTarget;
+      const clickedMask = clickedVideoWrapper.querySelector('.mask');
+
+      // Only toggle the opacity if the clicked video was masked
+      if (getComputedStyle(clickedMask).opacity !== '0') {
+        // If the clicked video was masked, make it fully visible and mask the other video
+        clickedMask.style.opacity = '0';
+        (clickedVideoWrapper === videoElWrapper ? mask2 : mask1).style.opacity = '0.8';
+
+        // Unmute the clicked video and mute the other video
+        if (clickedVideoWrapper === videoElWrapper) {
+          videoEl.muted = false;
+          videoEl2.muted = true;
+        } else {
+          videoEl.muted = true;
+          videoEl2.muted = false;
+        }
+      }
+    }
+
+    // Add event listeners to the video wrapper elements
+    videoElWrapper.addEventListener('click', toggleVideos);
+    videoEl2Wrapper.addEventListener('click', toggleVideos);
+  </script>
+</body>
+
+</html>

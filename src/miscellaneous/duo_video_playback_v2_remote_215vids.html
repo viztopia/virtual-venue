@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+
+    .video-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 5% 50% 5% 10% auto;
+      /* Add a new row for spacing */
+      justify-items: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      /* display: flex;
+      flex-direction: column;
+      align-items: center; */
+      grid-row: 2;
+      overflow: hidden;
+      /* Prevent mask from overflowing */
+      background-color: #000;
+    }
+
+    #video,
+    #video2 {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      /* object-fit: cover; */
+    }
+
+    .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      /* Make mask slightly taller */
+      background: rgba(0, 0, 0, 1);
+      transition: opacity 0.5s;
+      opacity: 0;
+    }
+
+    .mask.active {
+      /* Your active state styles here */
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    #audio1 {
+      grid-column: 1;
+      grid-row: 4;
+      /* Adjust grid-row */
+    }
+
+    #audio2 {
+      grid-column: 2;
+      grid-row: 4;
+      /* Adjust grid-row */
+    }
+
+    .audio-button {
+      width: 50%;
+      height: 80%;
+      /* Adjust height */
+      background-color: #555;
+      /* Darker gray */
+      border: none;
+      color: #fff;
+      /* White text */
+      padding: 15px 32px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      /* font-size: 16px; */
+      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      margin: 4px 2px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .audio-button.active {
+      background-color: #ccc;
+      color: #000;
+      cursor: default;
+    }
+
+    .metadata {
+      /* font-family: Arial, sans-serif; */
+      grid-row: 5;
+      /* Adjust grid-row */
+      /* background-color: rgba(0, 0, 0, 0.7); */
+      padding: 10px;
+      border-radius: 5px;
+      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      color: #d1d1d1;
+      line-height: 1.5;
+    }
+
+    .metadata .title {
+      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      font-weight: bold;
+    }
+
+    .metadata .name-country {
+      font-size: calc(0.4vw + 0.4vh + .4vmin);
+    }
+
+    .metadata .content-warning {
+      color: #8d3636;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="video-container">
+    <div class="video-wrapper" id="video1-wrapper">
+      <video id="video"></video>
+      <div class="mask" id="mask1"></div>
+    </div>
+    <button id="audio1" class="audio-button active">Audio 1</button>
+    <div id="metadata1" class="metadata">
+      <p class="title"></p>
+      <p class="name-country"></p>
+      <p class="content-warning"></p>
+    </div>
+    <div class="video-wrapper" id="video2-wrapper">
+      <video id="video2" muted></video>
+      <div class="mask active" id="mask2"></div>
+    </div>
+    <button id="audio2" class="audio-button">Audio 2</button>
+    <div id="metadata2" class="metadata">
+      <p class="title"></p>
+      <p class="name-country"></p>
+      <p class="content-warning"></p>
+    </div>
+  </div>
+
+  <script>
+    const videoInfo = [
+      {
+        "hlsManifest": "assets/refest2024/001/hls/manifest.m3u8",
+        "duration": 89.907664,
+        "country": "Romania, Estonia, Japan",
+        "name": "IIOANA & Naoto Hieda",
+        "title": "IIOANA - AQUA PARK (underground demo music video)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/002/hls/manifest.m3u8",
+        "duration": 540.12,
+        "country": "Serbia",
+        "name": "Milica Denković",
+        "title": "Heavy Shots: Severe Period Pain Simulator",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/003/hls/manifest.m3u8",
+        "duration": 16.057708,
+        "country": "Uganda",
+        "name": "Evans Akanyijuka",
+        "title": "Symbiosis of dreams -Tai tai",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/004/hls/manifest.m3u8",
+        "duration": 153.6,
+        "country": "Germany",
+        "name": "Irena Paskali",
+        "title": "Compassion with the Earth",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/005/hls/manifest.m3u8",
+        "duration": 142.0419,
+        "country": "England",
+        "name": "Alessandro Paiano",
+        "title": "2:22no23",
+        "contentWarning": "flashing lights"
+      },
+      {
+        "hlsManifest": "assets/refest2024/006/hls/manifest.m3u8",
+        "duration": 425.466708,
+        "country": "Germany",
+        "name": "Heiko Kalmbach",
+        "title": "Troubled Mind",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/007/hls/manifest.m3u8",
+        "duration": 505.0,
+        "country": "France",
+        "name": "Robert Cahen and Nicolas Vérin",
+        "title": "Ceremonies",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/008/hls/manifest.m3u8",
+        "duration": 180.0,
+        "country": "South Korea",
+        "name": "Dasul Kim",
+        "title": "Swimming in the Void",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/009/hls/manifest.m3u8",
+        "duration": 198.2,
+        "country": "Germany",
+        "name": "Irena Paskali",
+        "title": "Inconceivable time",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/010/hls/manifest.m3u8",
+        "duration": 58.233333,
+        "country": "Italy",
+        "name": "Alessandro Destro",
+        "title": "STOP RADIOACTIVITY",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/011/hls/manifest.m3u8",
+        "duration": 181.806146,
+        "country": "Greece",
+        "name": "Chris Pavlakis",
+        "title": "In/Visible",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/012/hls/manifest.m3u8",
+        "duration": 194.633333,
+        "country": "Canada",
+        "name": "Nick Fox-Gieg and Meagan Williams",
+        "title": "Traffic Flow III",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/013/hls/manifest.m3u8",
+        "duration": 216.48,
+        "country": "Romania",
+        "name": "Alex Pașca",
+        "title": "Expanding your database",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/014/hls/manifest.m3u8",
+        "duration": 44.5445,
+        "country": "Cambodia",
+        "name": "Siden KONG",
+        "title": "Reminiscence",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/015/hls/manifest.m3u8",
+        "duration": 398.598208,
+        "country": "India, United Kingdom",
+        "name": "Harmeet Singh Rahal",
+        "title": "Second-Hand Spectres",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/016/hls/manifest.m3u8",
+        "duration": 291.866667,
+        "country": "Jamaica",
+        "name": "Casper Plummer",
+        "title": "Look Here",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/017/hls/manifest.m3u8",
+        "duration": 376.361667,
+        "country": "China",
+        "name": "Caiyi Feng",
+        "title": "We Will Eventually Lose the Ability to Reason 我们终将失去理智",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/018/hls/manifest.m3u8",
+        "duration": 157.014,
+        "country": "Netherlands",
+        "name": "Luan Machado - Paris Blues",
+        "title": "“R”",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/019/hls/manifest.m3u8",
+        "duration": 198.28,
+        "country": "Germany",
+        "name": "ReVerse Bullets feat. Jamika Ajalon",
+        "title": "\"Replikant\"",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/020/hls/manifest.m3u8",
+        "duration": 319.135057,
+        "country": "Japan",
+        "name": "Emi Kusano",
+        "title": "Morphing Memory of Neural Fad",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/021/hls/manifest.m3u8",
+        "duration": 393.92,
+        "country": "Hong Kong",
+        "name": "CHAN CHEUK SZE",
+        "title": "No brightness in the City",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/022/hls/manifest.m3u8",
+        "duration": 238.083333,
+        "country": "France",
+        "name": "Valentin Sismann",
+        "title": "Screensong",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/023/hls/manifest.m3u8",
+        "duration": 167.100271,
+        "country": "France",
+        "name": "Pierre Yves Clouin",
+        "title": "Rain Again",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/024/hls/manifest.m3u8",
+        "duration": 573.52,
+        "country": "France, Morocco",
+        "name": "Mohamed Thara",
+        "title": "As Long As I Can Hold My Breath",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/025/hls/manifest.m3u8",
+        "duration": 473.083333,
+        "country": "Canada",
+        "name": "Jason Zumpano",
+        "title": "GLIDE",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/026/hls/manifest.m3u8",
+        "duration": 486.121667,
+        "country": "Albania",
+        "name": "Eneos Çarka",
+        "title": "Where Are You Now?",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/027/hls/manifest.m3u8",
+        "duration": 399.552979,
+        "country": "Mexico",
+        "name": "Carlos Silva",
+        "title": "Tierra",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/028/hls/manifest.m3u8",
+        "duration": 294.149231,
+        "country": "Venezuela",
+        "name": "Gilberto Polo Pacheco",
+        "title": "El Juego",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/029/hls/manifest.m3u8",
+        "duration": 251.12,
+        "country": "Argentina",
+        "name": "Martín Emiliano Díaz",
+        "title": "Scrollear después de Gaza es un acto de barbarie",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/030/hls/manifest.m3u8",
+        "duration": 481.02458,
+        "country": "Spain",
+        "name": "Ausín Sáinz",
+        "title": "4  Walls. (4 Paredes)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/031/hls/manifest.m3u8",
+        "duration": 236.25,
+        "country": "Switzerland",
+        "name": "Fabian Krebs",
+        "title": "A Symphony",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/032/hls/manifest.m3u8",
+        "duration": 158.166667,
+        "country": "Brazil",
+        "name": "Marcelo Kraiser",
+        "title": "Shards",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/033/hls/manifest.m3u8",
+        "duration": 252.01,
+        "country": "Perú, Portugal",
+        "name": "Salomon Perez",
+        "title": "2 Reels",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/034/hls/manifest.m3u8",
+        "duration": 765.44,
+        "country": "Ukraine",
+        "name": "Salt Salome",
+        "title": "\"I am not where you think I am. I am where you think I am not\"",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/035/hls/manifest.m3u8",
+        "duration": 256.839917,
+        "country": "Tokyo",
+        "name": "Rui Yamaguchi",
+        "title": "Eating Tour For Freedom #2",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/036/hls/manifest.m3u8",
+        "duration": 414.455708,
+        "country": "Japan",
+        "name": "Kei Yamamoto",
+        "title": "We are Migratory Birds.",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/037/hls/manifest.m3u8",
+        "duration": 90.0,
+        "country": "Canada",
+        "name": "Callon Murphy",
+        "title": "A Honeymoon in Elora",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/038/hls/manifest.m3u8",
+        "duration": 290.390104,
+        "country": "Brazil",
+        "name": "Augusto Calçada",
+        "title": "SELFIE-DESTRUCTION",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/039/hls/manifest.m3u8",
+        "duration": 89.521995,
+        "country": "Egypt",
+        "name": "Dina Khalil & Maya Khalil",
+        "title": "Nostalgia | Sound Design",
+        "contentWarning": "audio only"
+      },
+      {
+        "hlsManifest": "assets/refest2024/040/hls/manifest.m3u8",
+        "duration": 440.28,
+        "country": "Iran",
+        "name": "Sahand Sarhaddi",
+        "title": "Slaughter",
+        "contentWarning": "animal violence"
+      },
+      {
+        "hlsManifest": "assets/refest2024/041/hls/manifest.m3u8",
+        "duration": 142.8,
+        "country": "Ukraine",
+        "name": "Oleksa Konopelko",
+        "title": "Mutafory Lili",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/042/hls/manifest.m3u8",
+        "duration": 412.6,
+        "country": "Norway",
+        "name": "Pouria Kazemi",
+        "title": "The Lost Forgotten Child",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/043/hls/manifest.m3u8",
+        "duration": 296.36,
+        "country": "Spain",
+        "name": "Brigitte Valobra and Wald (acting-Making). Joseph DeVita (original music)",
+        "title": "Suspension",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/044/hls/manifest.m3u8",
+        "duration": 180.0,
+        "country": "Tunisia",
+        "name": "Hamza Madfaï",
+        "title": "Eternal Recurrence",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/045/hls/manifest.m3u8",
+        "duration": 467.375,
+        "country": "Iran",
+        "name": "Hesam Rahmani",
+        "title": "Faces without Visage",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/046/hls/manifest.m3u8",
+        "duration": 492.843537,
+        "country": "Germany",
+        "name": "Daniel Zander",
+        "title": "Sol Alegria Del Mare Alias Yume Nikki",
+        "contentWarning": "no sound"
+      },
+      {
+        "hlsManifest": "assets/refest2024/047/hls/manifest.m3u8",
+        "duration": 270.52,
+        "country": "France",
+        "name": "Mael Audren",
+        "title": "la maison brûle, les oiseaux chantent",
+        "contentWarning": "no sound"
+      },
+      {
+        "hlsManifest": "assets/refest2024/048/hls/manifest.m3u8",
+        "duration": 20.062041,
+        "country": "United Kingdom",
+        "name": "Jordan Bruce",
+        "title": "PISS IN MY MOUTH",
+        "contentWarning": "graphic content"
+      },
+      {
+        "hlsManifest": "assets/refest2024/049/hls/manifest.m3u8",
+        "duration": 422.278095,
+        "country": "Nigeria",
+        "name": "Wac people",
+        "title": "ITA “The world outside”",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/050/hls/manifest.m3u8",
+        "duration": 447.366667,
+        "country": "Nigeria",
+        "name": "Adebayo Seun",
+        "title": "The Assault",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/051/hls/manifest.m3u8",
+        "duration": 293.183333,
+        "country": "Spain",
+        "name": "Vic Pereiró",
+        "title": "_DUST_ IS_NOT_DESERT_",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/052/hls/manifest.m3u8",
+        "duration": 162.695875,
+        "country": "Japan",
+        "name": "Yoshihisa Kitamura",
+        "title": "Metamorphose",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/053/hls/manifest.m3u8",
+        "duration": 216.96675,
+        "country": "France",
+        "name": "BOUGE Alexandra",
+        "title": "MODERN AGRICULTURE",
+        "contentWarning": "dead bodies"
+      },
+      {
+        "hlsManifest": "assets/refest2024/054/hls/manifest.m3u8",
+        "duration": 181.76,
+        "country": "France",
+        "name": "BOUGE Alexandra",
+        "title": "FISH FARMING",
+        "contentWarning": "dead bodies"
+      },
+      {
+        "hlsManifest": "assets/refest2024/055/hls/manifest.m3u8",
+        "duration": 105.916667,
+        "country": "Brazil",
+        "name": "Planeta Sobremesa",
+        "title": "Peixe Fora d'Água (Fish Out of Water)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/056/hls/manifest.m3u8",
+        "duration": 419.986233,
+        "country": "Perú",
+        "name": "Rafael Arévalo",
+        "title": "Generación zapping",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/057/hls/manifest.m3u8",
+        "duration": 60.06,
+        "country": "Perú",
+        "name": "Rafael Arévalo",
+        "title": "La vida adulta de las efímeras",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/058/hls/manifest.m3u8",
+        "duration": 725.958333,
+        "country": "South Korea",
+        "name": "Cristián Tàpies Goldenberg",
+        "title": "The blue cage",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/059/hls/manifest.m3u8",
+        "duration": 193.276417,
+        "country": "Indonesia",
+        "name": "Genta Habib",
+        "title": "+Tomato+",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/060/hls/manifest.m3u8",
+        "duration": 305.76,
+        "country": "Germany",
+        "name": "Christian Niccoli",
+        "title": "ZWEI",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/061/hls/manifest.m3u8",
+        "duration": 331.008,
+        "country": "Spain",
+        "name": "Eloy Gurucharri",
+        "title": "La mirada de Goya",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/062/hls/manifest.m3u8",
+        "duration": 136.8,
+        "country": "Uruguay",
+        "name": "Florencia Martinez Aysa",
+        "title": "Caltrop woman",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/063/hls/manifest.m3u8",
+        "duration": 66.357958,
+        "country": "Italy",
+        "name": "Carlo Galbiati",
+        "title": "Le mot couleur",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/064/hls/manifest.m3u8",
+        "duration": 414.996667,
+        "country": "Mexico",
+        "name": "Luisa Vidales Reina",
+        "title": "self-portrait of the commons",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/065/hls/manifest.m3u8",
+        "duration": 410.04,
+        "country": "France",
+        "name": "Jean-Michel Rolland",
+        "title": "Vaches:Vestiges",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/066/hls/manifest.m3u8",
+        "duration": 431.916667,
+        "country": "Ireland",
+        "name": "Johanna Nulty",
+        "title": "From One To Another",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/067/hls/manifest.m3u8",
+        "duration": 75.541333,
+        "country": "Taiwan",
+        "name": "Yalan Wen",
+        "title": "Cascade",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/068/hls/manifest.m3u8",
+        "duration": 130.88,
+        "country": "Australia",
+        "name": "Yuchan Cao",
+        "title": "Symphony of being",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/069/hls/manifest.m3u8",
+        "duration": 484.64,
+        "country": "Germany, Austria",
+        "name": "Captain Fiffy",
+        "title": "Wassermusik (Water Music)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/070/hls/manifest.m3u8",
+        "duration": 87.52,
+        "country": "Argentina",
+        "name": "Bel Astorga",
+        "title": "Sober and Beautiful",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/071/hls/manifest.m3u8",
+        "duration": 330.001995,
+        "country": "India",
+        "name": "Ranadeep Bhattacharyya & Judhajit Bagchi",
+        "title": "Children of the Soil",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/072/hls/manifest.m3u8",
+        "duration": 300.96,
+        "country": "Armenia",
+        "name": "Lilia Li-Mi-Yan and Katherina Sadovsky",
+        "title": "Where is my plastic bag?",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/073/hls/manifest.m3u8",
+        "duration": 587.820567,
+        "country": "Turkey",
+        "name": "Melisa Yagmur Saydi",
+        "title": "Walking around my head",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/074/hls/manifest.m3u8",
+        "duration": 83.475737,
+        "country": "Turkey",
+        "name": "Melisa Yagmur Saydi",
+        "title": "Sample Text",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/075/hls/manifest.m3u8",
+        "duration": 585.002,
+        "country": "United Kingdom",
+        "name": "Ellie Kyungran Heo",
+        "title": "The Ragwort",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/076/hls/manifest.m3u8",
+        "duration": 391.265875,
+        "country": "Jamaica",
+        "name": "Suelyn Choo",
+        "title": "Paria's Pearl",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/077/hls/manifest.m3u8",
+        "duration": 552.682667,
+        "country": "Chile",
+        "name": "José Godoy",
+        "title": "Reading Circle",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/078/hls/manifest.m3u8",
+        "duration": 427.92,
+        "country": "Finland",
+        "name": "Marja Viitahuhta and Ánnámáret",
+        "title": "Bálvvosbáiki",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/079/hls/manifest.m3u8",
+        "duration": 468.201067,
+        "country": "Thailand",
+        "name": "Nanut Thanapornrapee",
+        "title": "This History is Auto-Generated: History Bureau Agent",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/080/hls/manifest.m3u8",
+        "duration": 45.566667,
+        "country": "India",
+        "name": "Aakarsh Singh",
+        "title": "Abandoned Hotels of Zangsti",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/081/hls/manifest.m3u8",
+        "duration": 194.25,
+        "country": "Argentina",
+        "name": "Santiago Vitale",
+        "title": "Bleach Kiss",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/082/hls/manifest.m3u8",
+        "duration": 600.0,
+        "country": "India",
+        "name": "Anshul Roy",
+        "title": "Rage Against the Archive",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/083/hls/manifest.m3u8",
+        "duration": 161.416667,
+        "country": "Argentina",
+        "name": "Joaquin Arturo Dolera Rosa",
+        "title": "ʎɔuǝɹɐdsuɐɹʇ",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/084/hls/manifest.m3u8",
+        "duration": 188.6885,
+        "country": "China",
+        "name": "Yufan Xie",
+        "title": "Sonarium",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/085/hls/manifest.m3u8",
+        "duration": 60.0,
+        "country": "China",
+        "name": "Yufan Xie & Ziqian Yin",
+        "title": "Geomedia",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/086/hls/manifest.m3u8",
+        "duration": 81.614875,
+        "country": "China",
+        "name": "Yufan Xie & Angry 5JAR",
+        "title": "Focal Lapse",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/087/hls/manifest.m3u8",
+        "duration": 299.666667,
+        "country": "China",
+        "name": "Yufan Xie, Melvin Lewis, Ziqian Yin, Wei Wu",
+        "title": "Maelstrom",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/088/hls/manifest.m3u8",
+        "duration": 300.033067,
+        "country": "Taiwan",
+        "name": "Viviane Roi",
+        "title": "Content Park: Scroll and Get Fed",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/089/hls/manifest.m3u8",
+        "duration": 106.0,
+        "country": "South Korea",
+        "name": "Shon Kim",
+        "title": "BOOKOLORBAR: Action",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/090/hls/manifest.m3u8",
+        "duration": 624.966667,
+        "country": "Germany, Kenya",
+        "name": "Jan Schekauski",
+        "title": "Back to the Garden of Eden",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/091/hls/manifest.m3u8",
+        "duration": 340.245,
+        "country": "United Kingdom",
+        "name": "JMRead",
+        "title": "Hideaway",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/092/hls/manifest.m3u8",
+        "duration": 329.045,
+        "country": "United Kingdom",
+        "name": "JMRead",
+        "title": "Local Figurative",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/093/hls/manifest.m3u8",
+        "duration": 170.218333,
+        "country": "Netherlands",
+        "name": "Johannes Christopher Gerard",
+        "title": "Dream Plant 2",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/094/hls/manifest.m3u8",
+        "duration": 560.575,
+        "country": "Portugal",
+        "name": "S4RA",
+        "title": "R̶A̶V̶E̶",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/095/hls/manifest.m3u8",
+        "duration": 199.125,
+        "country": "Brazil",
+        "name": "Alexandre Gnipper e Bruno Lasevicius",
+        "title": "trans form",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/096/hls/manifest.m3u8",
+        "duration": 60.074667,
+        "country": "United States, Belgium",
+        "name": "Brian Ratigan",
+        "title": "Non Films Death Archives No. 4",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/097/hls/manifest.m3u8",
+        "duration": 398.533333,
+        "country": "Iran",
+        "name": "Fatemeh Afimoh Kazemi",
+        "title": "Poor Knee; Trigger Finger",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/098/hls/manifest.m3u8",
+        "duration": 394.8945,
+        "country": "Syria",
+        "name": "Kevork Mourad",
+        "title": "Barbed Wire",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/099/hls/manifest.m3u8",
+        "duration": 698.958333,
+        "country": "Kyrgyzstan",
+        "name": "Zamanbap art",
+        "title": "Winter Theatre",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/100/hls/manifest.m3u8",
+        "duration": 355.008,
+        "country": "Italy",
+        "name": "Giorgio Gerardi",
+        "title": "Driving",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/101/hls/manifest.m3u8",
+        "duration": 241.8,
+        "country": "Perú",
+        "name": "Claudix Vanesix",
+        "title": "Amy Camus AR",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/102/hls/manifest.m3u8",
+        "duration": 345.48,
+        "country": "Belgium",
+        "name": "Alexandra Dementieva",
+        "title": "Our portraits",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/103/hls/manifest.m3u8",
+        "duration": 228.5,
+        "country": "India",
+        "name": "Harsh Pundit",
+        "title": "ELEMENTAL",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/104/hls/manifest.m3u8",
+        "duration": 248.833333,
+        "country": "Hong Kong",
+        "name": "Jennifer Yeung",
+        "title": "THESE FACES",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/105/hls/manifest.m3u8",
+        "duration": 517.851185,
+        "country": "Mexico",
+        "name": "Jose Trejo Maya",
+        "title": "Transparencies in Time:",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/106/hls/manifest.m3u8",
+        "duration": 299.924,
+        "country": "Portugal",
+        "name": "Pedro Marques Pereira",
+        "title": "Cascata",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/107/hls/manifest.m3u8",
+        "duration": 212.966667,
+        "country": "Sweden",
+        "name": "Marie Nerland, David A Rios, Volt Bergen, Norway",
+        "title": "A Part and the Whole",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/108/hls/manifest.m3u8",
+        "duration": 492.18,
+        "country": "Colombia",
+        "name": "Carol Montealegre",
+        "title": "Deep Beyond the Visible",
+        "contentWarning": ""
+      },
+    ];
+    const videoInfo2 = [
+      {
+        "hlsManifest": "assets/refest2024/109/hls/manifest.m3u8",
+        "duration": 420.42,
+        "country": "Bulgaria",
+        "name": "Maria Nalbantova",
+        "title": "cleanse",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/110/hls/manifest.m3u8",
+        "duration": 74.816,
+        "country": "Mexic, Sweden",
+        "name": "stochastic reverie",
+        "title": "this will remain untitled",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/111/hls/manifest.m3u8",
+        "duration": 120.066667,
+        "country": "Nigeria, United Kingdom",
+        "name": "Nuff",
+        "title": "FACETS",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/112/hls/manifest.m3u8",
+        "duration": 170.046667,
+        "country": "Brazil",
+        "name": "Pedro Carcereri",
+        "title": "How close are you to losing control?",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/113/hls/manifest.m3u8",
+        "duration": 357.148458,
+        "country": "Netherlands, Korea, United Kingdom",
+        "name": "Created by Cyan D'Anjou, Luisa do Amaral, and Sunghoon Song",
+        "title": "Unknowable Certainty: Restlessness",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/114/hls/manifest.m3u8",
+        "duration": 285.198208,
+        "country": "India, United States",
+        "name": "Mark A. Hernandez Motaghy / Janastu",
+        "title": "Sughavazhvu",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/115/hls/manifest.m3u8",
+        "duration": 510.08,
+        "country": "Åland Islands",
+        "name": "Aska Soma",
+        "title": "Algebra",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/116/hls/manifest.m3u8",
+        "duration": 505.129625,
+        "country": "Brazil",
+        "name": "Lívia Sá & Sofia Scharff",
+        "title": "ALAMO",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/117/hls/manifest.m3u8",
+        "duration": 142.392392,
+        "country": "China",
+        "name": "Jiatong Yao",
+        "title": "toothopia",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/119/hls/manifest.m3u8",
+        "duration": 29.133333,
+        "country": "Malta",
+        "name": "Splaces Studio",
+        "title": "DendroSonic",
+        "contentWarning": "no sound"
+      },
+      {
+        "hlsManifest": "assets/refest2024/120/hls/manifest.m3u8",
+        "duration": 599.0,
+        "country": "Denmark",
+        "name": "Magnus Pind",
+        "title": "Scans",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/121/hls/manifest.m3u8",
+        "duration": 181.639792,
+        "country": "Angola",
+        "name": "Flávio Cardoso",
+        "title": "ALiEN | Room 222 | Fuckin' Globo Luanda 2020",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/122/hls/manifest.m3u8",
+        "duration": 561.875,
+        "country": "Pakistan",
+        "name": "A'ssia Rai",
+        "title": "Coyote (2024)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/123/hls/manifest.m3u8",
+        "duration": 599.866667,
+        "country": "Italy, United States, Lebanon",
+        "name": "àLaLuce & Jcosky",
+        "title": "àLaLuce & Jcosky",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/124/hls/manifest.m3u8",
+        "duration": 137.113991,
+        "country": "England",
+        "name": "Stuart Pound",
+        "title": "electron city",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/125/hls/manifest.m3u8",
+        "duration": 164.5,
+        "country": "Russia",
+        "name": "Maria (Morra) Kozlitina",
+        "title": "A Nasty Hole",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/126/hls/manifest.m3u8",
+        "duration": 596.4,
+        "country": "Vietnam",
+        "name": "Linh Valerie Pham",
+        "title": "A Game of Good Citizens",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/127/hls/manifest.m3u8",
+        "duration": 853.466667,
+        "country": "Greece",
+        "name": "Anna Nikaki",
+        "title": "States - Collaging Memories",
+        "contentWarning": "14 mins.."
+      },
+      {
+        "hlsManifest": "assets/refest2024/128/hls/manifest.m3u8",
+        "duration": 404.04,
+        "country": "Ethiopia",
+        "name": "Marwen Ben Cheikh",
+        "title": "LUCIDREAM",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/129/hls/manifest.m3u8",
+        "duration": 291.4,
+        "country": "France",
+        "name": "Pauli Bertholon",
+        "title": "Grandma's Son",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/130/hls/manifest.m3u8",
+        "duration": 257.041667,
+        "country": "United Kingdom, United States",
+        "name": "Beatie Wolfe",
+        "title": "Smoke and Mirrors",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/131/hls/manifest.m3u8",
+        "duration": 154.0,
+        "country": "Italy",
+        "name": "Rasha Amin",
+        "title": "Solitude 2023",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/132/hls/manifest.m3u8",
+        "duration": 594.148333,
+        "country": "Venezuela",
+        "name": "Alfredo Travieso",
+        "title": "Drum Solo",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/133/hls/manifest.m3u8",
+        "duration": 431.85,
+        "country": "Philippines",
+        "name": "Bea Mariano",
+        "title": "Dominion",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/134/hls/manifest.m3u8",
+        "duration": 180.010667,
+        "country": "Spain",
+        "name": "DARE",
+        "title": "GR-AI-N",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/135/hls/manifest.m3u8",
+        "duration": 143.445,
+        "country": "China",
+        "name": "Jingyi Chen",
+        "title": "Nature simulation",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/136/hls/manifest.m3u8",
+        "duration": 95.786667,
+        "country": "Trinidad and Tobago",
+        "name": "Amir Denzel Hall",
+        "title": "Seasoning",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/137/hls/manifest.m3u8",
+        "duration": 141.845,
+        "country": "Egypt, Germany",
+        "name": "Ahmed Kamel",
+        "title": "Under Skin - Spiral",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/138/hls/manifest.m3u8",
+        "duration": 81.28,
+        "country": "Belarus",
+        "name": "Irina Tall",
+        "title": "Another world",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/139/hls/manifest.m3u8",
+        "duration": 365.484218,
+        "country": "England",
+        "name": "Freddie Reilly",
+        "title": "He Sells Soft Drinks'",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/140/hls/manifest.m3u8",
+        "duration": 363.066667,
+        "country": "France",
+        "name": "Laurent madravel",
+        "title": "VOIR SANS ETRE VU(ES)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/141/hls/manifest.m3u8",
+        "duration": 426.776291,
+        "country": "India",
+        "name": "Ainesh Madan and Dayita Nereyeth",
+        "title": "still/moving",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/142/hls/manifest.m3u8",
+        "duration": 57.866667,
+        "country": "Seoul",
+        "name": "Jiwon Choi",
+        "title": "IDOL_Boys on Top's Tik Tok",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/143/hls/manifest.m3u8",
+        "duration": 50.0,
+        "country": "Shanghai",
+        "name": "Clarissa Ribeiro",
+        "title": "Metachanges Painting (performative data-visualization 0001/2024)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/144/hls/manifest.m3u8",
+        "duration": 358.875,
+        "country": "India",
+        "name": "Santasil Mallik, Hyash Tanmoy, Aidan W. Syiem",
+        "title": "Meeting ID: 874 0061 7174",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/145/hls/manifest.m3u8",
+        "duration": 219.050998,
+        "country": "India, United Kingdom, Canada",
+        "name": "Hyash Tanmoy, Santasil Mallik",
+        "title": "Liminal Visions",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/146/hls/manifest.m3u8",
+        "duration": 190.456938,
+        "country": "Finland",
+        "name": "How to Life: setting your expectations below average",
+        "title": "The Rabbit Hole",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/147/hls/manifest.m3u8",
+        "duration": 60.9609,
+        "country": "Saudi Arabia",
+        "name": "Meshal Al-Obaidallah",
+        "title": "IMG_0220: Physical Preservations of a Once Lost-Internet Video",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/148/hls/manifest.m3u8",
+        "duration": 19.38,
+        "country": "Guatemala",
+        "name": "Sergio R. Reyes M.",
+        "title": "Jardín de casa/Home garden",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/149/hls/manifest.m3u8",
+        "duration": 22.481667,
+        "country": "Guatemala",
+        "name": "Sergio R. Reyes M.",
+        "title": "Excerpt of 'Quizá' featuring actress Magdalena Morales during her perfomance in a school in Chichicastenango, Guatemala",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/150/hls/manifest.m3u8",
+        "duration": 32.856667,
+        "country": "Guatemala",
+        "name": "Sergio R. Reyes M.",
+        "title": "Church choir in San Carlos Sija, Quetzaltenango, Guatemala",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/151/hls/manifest.m3u8",
+        "duration": 719.934694,
+        "country": "Macedonia",
+        "name": "Ivanka Apostolova Baskar",
+        "title": "THE PCR SONG",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/152/hls/manifest.m3u8",
+        "duration": 187.071667,
+        "country": "Kazakhstan",
+        "name": "Intizor Otaniyozova",
+        "title": "Teaser of \"Ashes to Ashes, Dust to Side Chicks\"",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/153/hls/manifest.m3u8",
+        "duration": 364.671,
+        "country": "Sweden",
+        "name": "Marja Knape",
+        "title": "The night logic",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/154/hls/manifest.m3u8",
+        "duration": 425.88,
+        "country": "India",
+        "name": "K K Mallick & Souvik Das",
+        "title": "Road to Qatar",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/155/hls/manifest.m3u8",
+        "duration": 416.553333,
+        "country": "Iraq",
+        "name": "Adalet Garmiany",
+        "title": "Contemporary Culture in Conflict Zones I",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/156/hls/manifest.m3u8",
+        "duration": 408.553333,
+        "country": "Iraq",
+        "name": "Adalet Garmiany",
+        "title": "Contemporary Culture in Conflict Zones II",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/157/hls/manifest.m3u8",
+        "duration": 420.0,
+        "country": "Italy",
+        "name": "Pier Alfeo",
+        "title": "LAPSE - The time during which something continues",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/158/hls/manifest.m3u8",
+        "duration": 244.12,
+        "country": "Israel",
+        "name": "Batya Gil Margalit",
+        "title": "Tut time",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/159/hls/manifest.m3u8",
+        "duration": 317.845333,
+        "country": "United States, Poland, Ukraine",
+        "name": "Ellen Pearlman",
+        "title": "Language Is Leaving Me, An AI Opera Of The Skin",
+        "contentWarning": "dead bodies, nudity"
+      },
+      {
+        "hlsManifest": "assets/refest2024/160/hls/manifest.m3u8",
+        "duration": 193.276417,
+        "country": "Indonesia",
+        "name": "Genta Habib Pegagan",
+        "title": "+Tomato+",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/161/hls/manifest.m3u8",
+        "duration": 143.15,
+        "country": "India",
+        "name": "Twinkle Banerjee",
+        "title": "Home where are you?",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/162/hls/manifest.m3u8",
+        "duration": 412.145067,
+        "country": "China",
+        "name": "Yuxuan Qi",
+        "title": "Diffused Surface",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/163/hls/manifest.m3u8",
+        "duration": 188.24,
+        "country": "Kazakhstan",
+        "name": "ORTA Collective",
+        "title": "ORTA Collective – Zharyqopera Overture «Ң. Ғ. Қ.»",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/164/hls/manifest.m3u8",
+        "duration": 1381.525,
+        "country": "Mongolia",
+        "name": "NiNi DONGNIER",
+        "title": "Field Record 4: Every Motion is a Ritual",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/165/hls/manifest.m3u8",
+        "duration": 7.172993,
+        "country": "Haiti",
+        "name": "Mitsouka Exantus",
+        "title": "Endless Resources, Endless Possibilities",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/166/hls/manifest.m3u8",
+        "duration": 302.485,
+        "country": "Kazakhstan",
+        "name": "Sana Serkebaeva",
+        "title": "mockumentary",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/167/hls/manifest.m3u8",
+        "duration": 104.466667,
+        "country": "Egypt",
+        "name": "Sohaila Mosbeh",
+        "title": "Ya Taqill",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/168/hls/manifest.m3u8",
+        "duration": 598.848,
+        "country": "Thailand",
+        "name": "Pannawat Sertsuwankul",
+        "title": "4CELL",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/169/hls/manifest.m3u8",
+        "duration": 418.566667,
+        "country": "Bangladesh",
+        "name": "Ruhul Robin Khan",
+        "title": "Against The Wind",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/170/hls/manifest.m3u8",
+        "duration": 82.290542,
+        "country": "Bangladesh",
+        "name": "Ruhul Robin Khan",
+        "title": "Commitment to Change",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/171/hls/manifest.m3u8",
+        "duration": 202.581,
+        "country": "Latvia",
+        "name": "Sabīne Šnē",
+        "title": "World In a Grain of Sand",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/172/hls/manifest.m3u8",
+        "duration": 185.6,
+        "country": "Uruguay",
+        "name": "Mariela Soldano",
+        "title": "PUTREFACTUS",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/173/hls/manifest.m3u8",
+        "duration": 126.8,
+        "country": "Germany",
+        "name": "Juli Saragosa",
+        "title": "I Dream of Inadequacy",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/174/hls/manifest.m3u8",
+        "duration": 370.16,
+        "country": "Austria",
+        "name": "Perro Feo",
+        "title": "Todas las batallas son con unx mismx no con lxs demás (All the battles are with one self, not with others)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/175/hls/manifest.m3u8",
+        "duration": 287.033333,
+        "country": "Germany",
+        "name": "Daniel Gianfranceschi",
+        "title": "A Song Of Spring",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/176/hls/manifest.m3u8",
+        "duration": 558.333333,
+        "country": "China",
+        "name": "Wenqing Ye",
+        "title": "Symbiotic Dream",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/177/hls/manifest.m3u8",
+        "duration": 245.166667,
+        "country": "Portugal",
+        "name": "Luis Henrique Almeida de Oliveira",
+        "title": "pollinatorDiplomacy#1",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/178/hls/manifest.m3u8",
+        "duration": 428.756667,
+        "country": "Korea",
+        "name": "Hye-Soon Seo",
+        "title": "Night Rhythm",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/179/hls/manifest.m3u8",
+        "duration": 298.006042,
+        "country": "China",
+        "name": "Lois He",
+        "title": "The Stains",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/180/hls/manifest.m3u8",
+        "duration": 96.583333,
+        "country": "Japan",
+        "name": "Yuta Shimonishi",
+        "title": "Subtle Obsession",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/181/hls/manifest.m3u8",
+        "duration": 598.665,
+        "country": "Chile",
+        "name": "Sofía Suazo",
+        "title": "La ilusión de los mapas",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/182/hls/manifest.m3u8",
+        "duration": 64.807007,
+        "country": "Ghana",
+        "name": "CensorBG",
+        "title": "Never Give Up",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/183/hls/manifest.m3u8",
+        "duration": 472.405271,
+        "country": "Colombia, Germany",
+        "name": "Camilo Londoño Hernández",
+        "title": "Eden",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/184/hls/manifest.m3u8",
+        "duration": 129.458333,
+        "country": "China, United States",
+        "name": "He Anna Ren",
+        "title": "Drifted Memories",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/185/hls/manifest.m3u8",
+        "duration": 239.366667,
+        "country": "China",
+        "name": "Lisha Nie",
+        "title": "Do Nothing Company",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/186/hls/manifest.m3u8",
+        "duration": 307.015042,
+        "country": "Italy",
+        "name": "Nabìr",
+        "title": "Childhood Tales",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/187/hls/manifest.m3u8",
+        "duration": 431.44,
+        "country": "Singapore",
+        "name": "Daniel Chong",
+        "title": "I want to be a plant - Chapter 1",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/188/hls/manifest.m3u8",
+        "duration": 360.193167,
+        "country": "Spain",
+        "name": "Ian Margo",
+        "title": "my beloved new face",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/189/hls/manifest.m3u8",
+        "duration": 190.366667,
+        "country": "Germany, Luxembourg",
+        "name": "Valentine Tusa",
+        "title": "Voguing Down the Staircase",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/190/hls/manifest.m3u8",
+        "duration": 431.0,
+        "country": "Kazakhstan, United Kingdom",
+        "name": "Tomiris Batalova",
+        "title": "Project Mayhem: Dolphin House II",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/191/hls/manifest.m3u8",
+        "duration": 63.8,
+        "country": "Croatia",
+        "name": "Bruno Pavić",
+        "title": "The Message",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/192/hls/manifest.m3u8",
+        "duration": 270.1,
+        "country": "Nigeria",
+        "name": "Toochi Gabriel",
+        "title": "STORY OF AGWU",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/193/hls/manifest.m3u8",
+        "duration": 60.791667,
+        "country": "Albania",
+        "name": "Blerta Kambo",
+        "title": "Heavy Stone",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/194/hls/manifest.m3u8",
+        "duration": 593.193333,
+        "country": "India",
+        "name": "Dayita Nereyeth",
+        "title": "moving/still",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/195/hls/manifest.m3u8",
+        "duration": 389.566667,
+        "country": "Finland",
+        "name": "Sampsa Pirtola",
+        "title": "Walk the Walk",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/196/hls/manifest.m3u8",
+        "duration": 79.746333,
+        "country": "The Netherlands",
+        "name": "Merel Noorlander",
+        "title": "Erotic Engine",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/197/hls/manifest.m3u8",
+        "duration": 60.06,
+        "country": "The Netherlands",
+        "name": "Merel Noorlander (they/them)",
+        "title": "Cruising Kink",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/198/hls/manifest.m3u8",
+        "duration": 182.166667,
+        "country": "Phillipines, United States",
+        "name": "Abang-guard (Maureen Catbagan + Jevijoe Vitug)",
+        "title": "Abang-guard Work Habits",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/200/hls/manifest.m3u8",
+        "duration": 25.458667,
+        "country": "Turkey",
+        "name": "Beril Su",
+        "title": "Poetic Justice",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/201/hls/manifest.m3u8",
+        "duration": 190.984127,
+        "country": "South Sudan",
+        "name": "Jacob Mrima",
+        "title": "Days of Our Lives",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/202/hls/manifest.m3u8",
+        "duration": 293.871995,
+        "country": "Tanzania",
+        "name": "Frank Mhina",
+        "title": "Will You Marry Me?",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/203/hls/manifest.m3u8",
+        "duration": 385.15,
+        "country": "Tanzania",
+        "name": "Frank Mhina",
+        "title": "Violence Against Women",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/204/hls/manifest.m3u8",
+        "duration": 292.525567,
+        "country": "Congo",
+        "name": "Wamjira Wamaina, Rey Bulambo",
+        "title": "Food Security",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/205/hls/manifest.m3u8",
+        "duration": 66.44,
+        "country": "Kenya",
+        "name": "Artist Info TBD",
+        "title": "Spoiler",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/206/hls/manifest.m3u8",
+        "duration": 237.1944,
+        "country": "Burundi",
+        "name": "Artist Info TBD",
+        "title": "Bwala Africa Fashions",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/207/hls/manifest.m3u8",
+        "duration": 91.881361,
+        "country": "South Sudan",
+        "name": "Artist Info TBD",
+        "title": "The Twist of Fate",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/208/hls/manifest.m3u8",
+        "duration": 165.186956,
+        "country": "Tanzania",
+        "name": "Artist Info TBD",
+        "title": "Drama",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/209/hls/manifest.m3u8",
+        "duration": 42.074649,
+        "country": "Sudan",
+        "name": "Artist Info TBD",
+        "title": "Dancer",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/210/hls/manifest.m3u8",
+        "duration": 181.166944,
+        "country": "Tanzania",
+        "name": "Artist Info TBD",
+        "title": "Comedy",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/211/hls/manifest.m3u8",
+        "duration": 84.799274,
+        "country": "Congo",
+        "name": "Artist Info TBD",
+        "title": "Stop Child Abuse",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/212/hls/manifest.m3u8",
+        "duration": 208.249708,
+        "country": "South Sudan",
+        "name": "Manya Theatre Group",
+        "title": "Hustle Gone Rogue",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/213/hls/manifest.m3u8",
+        "duration": 98.452608,
+        "country": "South Sudan",
+        "name": "Manya Theatre Group",
+        "title": "Little Liar",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/214/hls/manifest.m3u8",
+        "duration": 125.291833,
+        "country": "Congo",
+        "name": "Kakuwood Theatre and Film",
+        "title": "ART YETU",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/215/hls/manifest.m3u8",
+        "duration": 57.466078,
+        "country": "Congo",
+        "name": "Artist Info TBD",
+        "title": "Uninvited Guests",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/216/hls/manifest.m3u8",
+        "duration": 38.916583,
+        "country": "Tanzania",
+        "name": "Frank Mhina",
+        "title": "Aziza",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/217/hls/manifest.m3u8",
+        "duration": 73.25,
+        "country": "Ethiopia",
+        "name": "Banna Desta",
+        "title": "Addis Ababa",
+        "contentWarning": ""
+      }
+    ];
+    const videoEl1 = document.getElementById("video");
+    const videoEl2 = document.getElementById("video2");
+
+    const videoEl1Wrapper = document.getElementById("video1-wrapper");
+    const videoEl2Wrapper = document.getElementById("video2-wrapper");
+
+    const startTime = new Date(1990, 8, 19, 12, 12, 0);
+    let socket = window.parent.socket;
+
+    const baseURL = "https://venue.livelab.app/";
+    //const baseURL = "http://localhost:3000/";
+
+    // keep track of if we've initialized some values;
+    let initialized = false;
+    let currentlyPlayingVideoIndex = -1;
+    let currentlyPlayingVideoIndex2 = -1;
+
+    // let's keep track of a serverTimeOffset value which will
+    // be the difference between local (client) time and the
+    // server's clock
+    let serverTimeOffset = 0;
+    function calculateServerTimeOffset(serverTime) {
+      const clientTime = Date.now();
+      const timeOffset = serverTime - clientTime;
+      console.log("Server Time Offset:", timeOffset);
+      return timeOffset;
+    }
+
+    socket.on("serverTime", ({ serverTime }) => {
+      serverTimeOffset = calculateServerTimeOffset(serverTime);
+      if (!initialized) {
+        console.log("initializing!!!!!!!!")
+        console.log(videoInfo);
+        updateVideoPlayer(videoInfo, videoEl1, currentlyPlayingVideoIndex);
+        updateVideoPlayer(videoInfo2, videoEl2, currentlyPlayingVideoIndex2);
+        initialized = true;
+      }
+    });
+
+    function updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex) {
+      // calculate the total length of the loop in MS
+      let totalLengthOfLoop = 0;
+      videoInfo.forEach((video) => {
+        totalLengthOfLoop += video.duration * 1000;
+      });
+
+      // calculate where we are in the loop based on the startTime and current serverTime
+      const calculatedServerTime = Date.now() + serverTimeOffset;
+      const elapsedTimeOnServer = calculatedServerTime - startTime; // Calculate elapsed time
+      const positionInLoop = elapsedTimeOnServer % totalLengthOfLoop; // Calculate position within the loop
+      console.log({ elapsedTimeOnServer, positionInLoop });
+
+      // calculate which video to play based on the above
+      let startOffset = 0;
+      let videoToPlayIndex = -1;
+      for (let i = 0; i < videoInfo.length; i++) {
+        if (positionInLoop < startOffset + videoInfo[i].duration * 1000) {
+          videoToPlayIndex = i;
+          break;
+        }
+        startOffset += videoInfo[i].duration * 1000;
+      }
+      console.log({ videoToPlayIndex });
+
+      // calculate where in the video to play
+      let durationBeforeDesiredVideo = 0;
+      for (let j = 0; j < videoToPlayIndex; j++) {
+        durationBeforeDesiredVideo += videoInfo[j].duration * 1000;
+      }
+      let positionInDesiredVideo = positionInLoop - durationBeforeDesiredVideo;
+      console.log({ positionInDesiredVideo });
+
+      // set videoplayer to play the desired video with the desired position
+      const localPlaybackPosition =
+        (positionInDesiredVideo + serverTimeOffset) / 1000;
+      updateHLSPlayback(videoInfo, videoToPlayIndex, localPlaybackPosition, videoEl, currentlyPlayingVideoIndex);
+    }
+
+    function updateHLSPlayback(videoInfo, desiredVideoIndex, positionInDesiredVideo, videoEl, currentlyPlayingVideoIndex) {
+      // don't swap videos if we're already playing the right one
+      if (desiredVideoIndex === currentlyPlayingVideoIndex) return;
+
+      console.log("updating video element");
+
+      const videoData = videoInfo[desiredVideoIndex];
+      if (hls) {
+        hls.destroy();
+      }
+      var hls = new Hls();
+      hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+        console.log("video and hls.js are now bound together !");
+      });
+      hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+        console.log(
+          "manifest loaded, found " + data.levels.length + " quality level",
+        );
+      });
+      hls.loadSource(baseURL + videoData.hlsManifest);
+      // bind them together
+      hls.attachMedia(videoEl);
+
+      // When the video metadata is loaded, set the playback start time
+      const handleMetadataLoaded = () => {
+        videoEl.currentTime = positionInDesiredVideo;
+        videoEl.play();
+        currentlyPlayingVideoIndex = desiredVideoIndex;
+
+        // Update the metadata info
+        const metadataEl = videoEl === videoEl1 ? document.getElementById('metadata1') : document.getElementById('metadata2');
+
+        const titleElement = metadataEl.querySelector('.title');
+        const nameCountryElement = metadataEl.querySelector('.name-country');
+        const contentWarningElement = metadataEl.querySelector('.content-warning');
+
+        titleElement.textContent = videoData.title;
+        titleElement.style.fontWeight = 'bold';
+
+        nameCountryElement.textContent = `${videoData.name} (${videoData.country})`;
+
+        if (videoData.contentWarning) {
+          contentWarningElement.textContent = 'Content Warning: ' + videoData.contentWarning;
+        } else {
+          contentWarningElement.textContent = '';
+        }
+      };
+      videoEl.addEventListener("loadedmetadata", handleMetadataLoaded);
+
+      const handleVideoEnded = () => {
+        console.log("videoEnded");
+        updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex);
+      };
+      videoEl.addEventListener("ended", handleVideoEnded);
+    }
+
+    const mask1 = document.getElementById("mask1");
+    const mask2 = document.getElementById("mask2");
+
+    function toggleVideos(event) {
+      // console.log('Video was clicked');
+      // // Check which video was clicked
+      // const clickedVideoWrapper = event.currentTarget;
+      // const clickedMask = clickedVideoWrapper.querySelector('.mask');
+
+      // // Only toggle the opacity if the clicked video was masked
+      // if (getComputedStyle(clickedMask).opacity !== '0') {
+      //   // If the clicked video was masked, make it fully visible and mask the other video
+      //   clickedMask.style.opacity = '0';
+      //   (clickedVideoWrapper === videoEl1Wrapper ? mask2 : mask1).style.opacity = '0.8';
+      // }
+
+      console.log('Video was clicked');
+      // Check which video was clicked
+      const clickedVideoWrapper = event.currentTarget;
+
+      console.log('Clicked:', clickedVideoWrapper);
+      const clickedMask = clickedVideoWrapper.querySelector('.mask');
+      // const clickedMask = event.currentTarget;
+      const otherMask = clickedMask === mask1 ? mask2 : mask1;
+
+      // log the two masks
+      console.log('Clicked Mask:', clickedMask);
+      console.log('Other Mask:', otherMask);
+
+      // Add 'active' class to the other mask and remove it from the clicked mask
+      clickedMask.classList.remove('active');
+      otherMask.classList.add('active');
+
+      // // Only toggle the opacity if the clicked video was masked
+      // if (getComputedStyle(clickedMask).opacity !== '0') {
+      //   // If the clicked video was masked, make it fully visible and mask the other video
+      //   clickedMask.style.opacity = '0';
+      //   otherMask.style.opacity = '0.8';
+      // }
+    }
+
+    // Add event listeners to the video wrapper elements
+    videoEl1Wrapper.addEventListener('click', toggleVideos);
+    videoEl2Wrapper.addEventListener('click', toggleVideos);
+
+
+    // Get the audio buttons
+    const audio1Button = document.getElementById('audio1');
+    const audio2Button = document.getElementById('audio2');
+
+    // Function to handle audio button click
+    function handleAudioButtonClick(event) {
+      const clickedButton = event.currentTarget;
+      const otherButton = clickedButton === audio1Button ? audio2Button : audio1Button;
+      const clickedVideo = clickedButton === audio1Button ? videoEl1 : videoEl2;
+      const otherVideo = clickedButton === audio1Button ? videoEl2 : videoEl1;
+
+
+      // Toggle the muted state of the videos
+      clickedVideo.muted = false;
+      otherVideo.muted = true;
+
+      // Add 'active' class to the clicked button and remove it from the other button
+      clickedButton.classList.add('active');
+      otherButton.classList.remove('active');
+
+      // log the muted state of the videos
+      console.log('Video 1 muted:', videoEl1.muted);
+      console.log('Video 2 muted:', videoEl2.muted);
+    }
+
+    // Add event listeners to the audio buttons
+    audio1Button.addEventListener('click', handleAudioButtonClick);
+    audio2Button.addEventListener('click', handleAudioButtonClick);
+  </script>
+</body>
+
+</html>
