@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/addons/p5.sound.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css" />
+  <meta charset="utf-8" />
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 200;
+    }
+
+    .video-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 5% 50% 1% 10% auto;
+      justify-items: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      grid-row: 2;
+      overflow: hidden;
+      background-color: #000;
+    }
+
+    #video,
+    #video2 {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .mask {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 1);
+      transition: opacity 0.5s;
+      opacity: 0;
+    }
+
+    .mask.active {
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    .mask.active:hover {
+      opacity: 0.6;
+    }
+
+    #audio1 {
+      grid-column: 1;
+      grid-row: 4;
+    }
+
+    #audio2 {
+      grid-column: 2;
+      grid-row: 4;
+    }
+
+    .audio-button {
+      justify-self: start;
+      width: 14%;
+      height: 50%;
+      background-color: #313131;
+      border: none;
+      color: #919191;
+      padding: 10px 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: calc(0.4vw + 0.4vh + .5vmin);
+      margin: 4px 2px;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+      cursor: pointer;
+    }
+
+    .audio-button:hover {
+      background-color: #4f4d4d;
+    }
+
+    .audio-button.active {
+      background-color: #7a7a7a;
+      color: #ffffff;
+      cursor: default;
+    }
+
+    .metadata {
+      justify-self: start;
+      align-self: start;
+      grid-row: 5;
+      border-radius: 5px;
+      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      color: #d1d1d1;
+      line-height: 1.5;
+      margin-left: 2px;
+    }
+
+    .metadata .title {
+      font-size: calc(0.6vw + 0.6vh + .6vmin);
+      font-style: italic;
+      font-weight: bold;
+      margin: 5px 0;
+    }
+
+    .metadata .name-country {
+      font-size: calc(0.4vw + 0.4vh + .4vmin);
+      margin: 5px 0;
+    }
+
+    .metadata .content-warning {
+      color: #8d3636;
+      margin: 5px 0;
+    }
+
+    .credit-info {
+      position: fixed;
+      bottom: 0%;
+      left: 0;
+      padding: 2px;
+      font-size: calc(0.4vw + 0.4vh + .4vmin);
+      color: #d1d1d1;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    #info-icon {
+      position: fixed;
+      bottom: 2%;
+      right: 4%;
+      transform: translate(50%, 50%);
+      cursor: pointer;
+      font-size: calc(0.4vw + 0.4vh + .4vmin);
+      background-color: #212121;
+      color: rgb(174, 171, 171);
+      padding: 5px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    #info-icon:hover {
+      background-color: #3d3d3d;
+      color: rgb(241, 241, 241);
+    }
+
+    #popup-container {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    #info-popup {
+      background-color: #f2f2f2;
+      color: #333;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 50%;
+      height: 60vh;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    #info-popup a {
+      color: #ff5c5c;
+      text-decoration: underline;
+    }
+
+    #close-button {
+      background-color: #ff5c5c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      position: fixed;
+      top: calc(50% - 30vh);
+      left: calc(50% + 25%);
+      font-size: 16px;
+    }
+
+    .live-segments {
+      column-count: 2;
+      column-gap: 20px;
+    }
+
+    .video-artists {
+      column-count: 4;
+      column-gap: 20px;
+    }
+
+    .video-artists div {
+      break-inside: avoid;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      margin-top: 1.5em;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+      break-inside: avoid;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="video-container">
+    <div class="video-wrapper" id="video1-wrapper">
+      <video id="video"></video>
+      <div class="mask" id="mask1"></div>
+    </div>
+    <button id="audio1" class="audio-button active">Audio 1 🔊</button>
+    <div id="metadata1" class="metadata">
+      <p class="title"></p>
+      <p class="name-country"></p>
+      <p class="content-warning"></p>
+    </div>
+    <div class="video-wrapper" id="video2-wrapper">
+      <video id="video2" muted></video>
+      <div class="mask active" id="mask2"></div>
+    </div>
+    <button id="audio2" class="audio-button">Audio 2 🔇</button>
+    <div id="metadata2" class="metadata">
+      <p class="title"></p>
+      <p class="name-country"></p>
+      <p class="content-warning"></p>
+    </div>
+  </div>
+
+  <div class="credit-info">
+    Re-Fest 2024, <a href="https://www.culturehub.org/" target="_blank">CultureHub</a> <a
+      href="https://www.instagram.com/culturehub_org/" target="_blank">@culturehub_org</a>
+  </div>
+
+  <div id="info-icon" onclick="showPopup()">
+    🛈 About Re-Fest
+  </div>
+
+  <div id="popup-container">
+    <button id="close-button" onclick="hidePopup()">X</button>
+    <div id="info-popup">
+      <h2>Welcome to Re–Fest 2024 presented by CultureHub!</h2>
+
+      <p>There are over 200 video works by artists from 90+ countries that are streaming 24/7 on this website from June
+        5-11.</p>
+
+      <p>Watch on a desktop or laptop (not a smartphone/tablet) using Google Chrome. Two videos will stream side by
+        side. Click on either video player to toggle between them. Select which audio you'd like to hear by clicking the
+        speaker icon.</p>
+
+      <p>View all of the artist credits <a href="https://www.culturehub.org/re-fest-2024#refest-2024-artists"
+          target="_blank">here</a>.</p>
+
+      <p>Live segments by international producers will occur daily throughout the weeklong broadcast.</p>
+
+      <div class="live-segments">
+        <ul>
+          <li><strong>June 5</strong><br>
+            13:00 ET | 20:00 EAT<br>
+            <em>Beshte-Beshte “Welcome to the Friend Zone”</em><br>
+            Bold Theatre Kenya <em>NAIROBI, KENYA</em>
+          </li>
+          <li><strong>June 6</strong><br>
+            11:00 ET<br>
+            International Artist Meet-Up<br>
+            All Video Artists<br>
+            13:00 ET | 20:00 EEST<br>
+            <em>The Motion of the Image</em><br>
+            Medrar <em>EGYPT</em>
+          </li>
+          <li><strong>June 7</strong><br>
+            12:00 ET | 19:00 EEST<br>
+            <em>Good Morning from Ukraine!</em><br>
+            NASHi Experimental Theatre Club <em>KYIV, UKRAINE</em>
+          </li>
+          <li><strong>June 8</strong><br>
+            13:00 ET | 19:00 CEST<br>
+            <em>“Crystal strings” / Love songs for a Free Palestine</em><br>
+            CultureHub NYC <em>NEW YORK, UNITED STATES</em><br>
+            John King <em>UNITED STATES</em><br>
+            Leyya Mona Tawil <em>UNITED STATES / SYRIA / PALESTINE</em><br>
+            Myriam Nana Henne-Adda <em>MADRID, SPAIN</em><br>
+            Mercedes Klausner <em>ROUBAIX, FRANCE</em><br>
+            20:00 ET | 9:00 KST (Sunday June 9 in Korea)<br>
+            <em>The Field</em><br>
+            CultureHub Korea <em>ANSAN, KOREA</em><br>
+            Cristián Tàpies <em>CHILE</em><br>
+            Luigi Voglino <em>ARGENTINA</em>
+          </li>
+          <li><strong>June 9</strong><br>
+            15:00 ET | 16:00 BRT | 21:00 CEST<br>
+            <em>PRI.MOR.DI.AI</em><br>
+            Terrabytes Glitch Lab <em>BERLIN, GERMANY</em><br>
+            MermaidBro420 <em>GERMANY</em><br>
+            dz. <em>BRAZIL</em><br>
+            19:00 PT | 22:00 ET<br>
+            <em>Hustle House</em><br>
+            CultureHub LA <em>LOS ANGELES, UNITED STATES</em><br>
+            Jessica Emmanual <em>UNITED STATES</em><br>
+            with Tey Johnson, Jobel Medina, Ian Stahl, Dead Secretary <em>UNITED STATES</em>
+          </li>
+          <li><strong>June 10</strong><br>
+            14:00 ET | 20:00 CEST<br>
+            <em>In a blink</em><br>
+            Eho Animato <em>BELGRADE, SERBIA</em>
+          </li>
+          <li><strong>June 11</strong><br>
+            14:00 ET | 11:00 PT<br>
+            <em>على حافة البحر</em><br>
+            Dena Al-Adeeb <em>IRAQ / UNITED STATES</em><br>
+            Sholeh Asgary <em>IRAN / UNITED STATES</em><br>
+            19:00 ET | 20:00 BRT<br>
+            <em>Open Works</em><br>
+            Companhia Nova de Teatro <em>SÃO PAULO, BRAZIL</em>
+          </li>
+        </ul>
+      </div>
+
+      <p>For more information on each segment, click <a
+          href="https://www.culturehub.org/re-fest-2024#refest-2024-schedule" target="_blank">here</a>.</p>
+
+      <p>Tag us on social media @culturehub_org and tell us where you're watching from!</p>
+
+      <p><a href="https://culturehub.us1.list-manage.com/subscribe?u=28913206aad38b2c4c2446a51&id=e3c4814baa"
+          target="_blank">Sign up</a> for CultureHub's weekly newsletter for opportunities, events, & updates from our
+        community!</p>
+
+      <p>Re–Fest is taking place on LiveLab Broadcaster, a browser based low-latency live-streaming platform created by
+        CultureHub that allows for real time interactions with online audiences.</p>
+    </div>
+  </div>
+
+
+  <script>
+    const videoInfo = [
+      {
+        "hlsManifest": "assets/refest2024/095/hls/manifest.m3u8",
+        "duration": 199.125,
+        "country": "Brazil",
+        "name": "Alexandre Gnipper e Bruno Lasevicius",
+        "title": "trans form",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/096/hls/manifest.m3u8",
+        "duration": 60.074667,
+        "country": "United States, Belgium",
+        "name": "Brian Ratigan",
+        "title": "Non Films Death Archives No. 4",
+        "contentWarning": ""
+      },
+    ];
+    const videoInfo2 = [
+      {
+        "hlsManifest": "assets/refest2024/109/hls/manifest.m3u8",
+        "duration": 420.42,
+        "country": "Bulgaria",
+        "name": "Maria Nalbantova",
+        "title": "cleanse",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/110/hls/manifest.m3u8",
+        "duration": 74.816,
+        "country": "Mexic, Sweden",
+        "name": "stochastic reverie",
+        "title": "this will remain untitled",
+        "contentWarning": ""
+      },
+    ];
+    const videoEl1 = document.getElementById("video");
+    const videoEl2 = document.getElementById("video2");
+
+    const videoEl1Wrapper = document.getElementById("video1-wrapper");
+    const videoEl2Wrapper = document.getElementById("video2-wrapper");
+
+    const audioButtonTextActive = "🔊";
+    const audioButtonTextInactive = "🔇";
+
+    const startTime = new Date(1990, 8, 19, 12, 12, 0);
+    let socket = window.parent.socket;
+
+    const baseURL = "https://venue.livelab.app/";
+    //const baseURL = "http://localhost:3000/";
+
+    // keep track of if we've initialized some values;
+    let initialized = false;
+    let currentlyPlayingVideoIndex = -1;
+    let currentlyPlayingVideoIndex2 = -1;
+
+    // let's keep track of a serverTimeOffset value which will
+    // be the difference between local (client) time and the
+    // server's clock
+    let serverTimeOffset = 0;
+    function calculateServerTimeOffset(serverTime) {
+      const clientTime = Date.now();
+      const timeOffset = serverTime - clientTime;
+      console.log("Server Time Offset:", timeOffset);
+      return timeOffset;
+    }
+
+    socket.on("serverTime", ({ serverTime }) => {
+      serverTimeOffset = calculateServerTimeOffset(serverTime);
+      if (!initialized) {
+        console.log("initializing!!!!!!!!")
+        console.log(videoInfo);
+        updateVideoPlayer(videoInfo, videoEl1, currentlyPlayingVideoIndex);
+        updateVideoPlayer(videoInfo2, videoEl2, currentlyPlayingVideoIndex2);
+        initialized = true;
+      }
+    });
+
+    function updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex) {
+      // calculate the total length of the loop in MS
+      let totalLengthOfLoop = 0;
+      videoInfo.forEach((video) => {
+        totalLengthOfLoop += video.duration * 1000;
+      });
+
+      // calculate where we are in the loop based on the startTime and current serverTime
+      const calculatedServerTime = Date.now() + serverTimeOffset;
+      const elapsedTimeOnServer = calculatedServerTime - startTime; // Calculate elapsed time
+      const positionInLoop = elapsedTimeOnServer % totalLengthOfLoop; // Calculate position within the loop
+      console.log({ elapsedTimeOnServer, positionInLoop });
+
+      // calculate which video to play based on the above
+      let startOffset = 0;
+      let videoToPlayIndex = -1;
+      for (let i = 0; i < videoInfo.length; i++) {
+        if (positionInLoop < startOffset + videoInfo[i].duration * 1000) {
+          videoToPlayIndex = i;
+          break;
+        }
+        startOffset += videoInfo[i].duration * 1000;
+      }
+      console.log({ videoToPlayIndex });
+
+      // calculate where in the video to play
+      let durationBeforeDesiredVideo = 0;
+      for (let j = 0; j < videoToPlayIndex; j++) {
+        durationBeforeDesiredVideo += videoInfo[j].duration * 1000;
+      }
+      let positionInDesiredVideo = positionInLoop - durationBeforeDesiredVideo;
+      console.log({ positionInDesiredVideo });
+
+      // set videoplayer to play the desired video with the desired position
+      const localPlaybackPosition =
+        (positionInDesiredVideo + serverTimeOffset) / 1000;
+      updateHLSPlayback(videoInfo, videoToPlayIndex, localPlaybackPosition, videoEl, currentlyPlayingVideoIndex);
+    }
+
+    function updateHLSPlayback(videoInfo, desiredVideoIndex, positionInDesiredVideo, videoEl, currentlyPlayingVideoIndex) {
+      // don't swap videos if we're already playing the right one
+      if (desiredVideoIndex === currentlyPlayingVideoIndex) return;
+
+      console.log("updating video element");
+
+      const videoData = videoInfo[desiredVideoIndex];
+      if (hls) {
+        hls.destroy();
+      }
+      var hls = new Hls();
+      hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+        console.log("video and hls.js are now bound together !");
+      });
+      hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+        console.log(
+          "manifest loaded, found " + data.levels.length + " quality level",
+        );
+      });
+      hls.loadSource(baseURL + videoData.hlsManifest);
+      // bind them together
+      hls.attachMedia(videoEl);
+
+      // When the video metadata is loaded, set the playback start time
+      const handleMetadataLoaded = () => {
+        videoEl.currentTime = positionInDesiredVideo;
+        videoEl.play();
+        currentlyPlayingVideoIndex = desiredVideoIndex;
+
+        // Update the metadata info
+        const metadataEl = videoEl === videoEl1 ? document.getElementById('metadata1') : document.getElementById('metadata2');
+
+        const titleElement = metadataEl.querySelector('.title');
+        const nameCountryElement = metadataEl.querySelector('.name-country');
+        const contentWarningElement = metadataEl.querySelector('.content-warning');
+
+        titleElement.textContent = videoData.title;
+        titleElement.style.fontWeight = 'bold';
+
+        // nameCountryElement.textContent = `${videoData.name} (${videoData.country})`;
+        nameCountryElement.innerHTML = `${videoData.name}<br>${videoData.country}`;
+
+        if (videoData.contentWarning) {
+          contentWarningElement.textContent = 'Content Warning: ' + videoData.contentWarning;
+        } else {
+          contentWarningElement.textContent = '';
+        }
+      };
+      videoEl.addEventListener("loadedmetadata", handleMetadataLoaded);
+
+      const handleVideoEnded = () => {
+        console.log("videoEnded");
+        updateVideoPlayer(videoInfo, videoEl, currentlyPlayingVideoIndex);
+      };
+      videoEl.addEventListener("ended", handleVideoEnded);
+    }
+
+    const mask1 = document.getElementById("mask1");
+    const mask2 = document.getElementById("mask2");
+
+    function toggleVideos(event) {
+      // Check which video was clicked
+      const clickedVideoWrapper = event.currentTarget;
+      console.log('Clicked:', clickedVideoWrapper);
+
+      // Save which video/mask was clicked and which was not
+      const isVideo1 = clickedVideoWrapper === videoEl1Wrapper;
+
+      const clickedMask = clickedVideoWrapper.querySelector('.mask');
+      // const clickedMask = event.currentTarget;
+      const otherMask = isVideo1 ? mask2 : mask1;
+
+      // log the two masks
+      console.log('Clicked Mask:', clickedMask);
+      console.log('Other Mask:', otherMask);
+
+      // Add 'active' class to the other mask and remove it from the clicked mask
+      clickedMask.classList.remove('active');
+      otherMask.classList.add('active');
+
+      // also toggle the audio buttons and video muted state
+      const clickedVideo = isVideo1 ? videoEl1 : videoEl2;
+      const otherVideo = isVideo1 ? videoEl2 : videoEl1;
+
+      // Toggle the muted state of the videos
+      clickedVideo.muted = false;
+      otherVideo.muted = true;
+
+      // Add 'active' class to the clicked button and remove it from the other button
+      const clickedButton = isVideo1 ? audio1Button : audio2Button;
+      const otherButton = isVideo1 ? audio2Button : audio1Button;
+
+      clickedButton.classList.add('active');
+      otherButton.classList.remove('active');
+
+      // Change the label of the buttons
+      clickedButton.innerText = isVideo1 ? 'Audio 1 ' + audioButtonTextActive : 'Audio 2 ' + audioButtonTextActive;
+      otherButton.innerText = isVideo1 ? 'Audio 2 ' + audioButtonTextInactive : 'Audio 1 ' + audioButtonTextInactive;
+
+      // log the muted state of the videos
+      console.log('Video 1 muted:', videoEl1.muted);
+      console.log('Video 2 muted:', videoEl2.muted);
+    }
+
+    // Add event listeners to the video wrapper elements
+    videoEl1Wrapper.addEventListener('click', toggleVideos);
+    videoEl2Wrapper.addEventListener('click', toggleVideos);
+
+
+    // Get the audio buttons
+    const audio1Button = document.getElementById('audio1');
+    const audio2Button = document.getElementById('audio2');
+
+    // Function to handle audio button click
+    function handleAudioButtonClick(event) {
+      const clickedButton = event.currentTarget;
+      const otherButton = clickedButton === audio1Button ? audio2Button : audio1Button;
+
+      // Save which video was clicked and which was not
+      const isVideo1 = clickedButton === audio1Button;
+
+      const clickedVideo = isVideo1 ? videoEl1 : videoEl2;
+      const otherVideo = isVideo1 ? videoEl2 : videoEl1;
+
+
+      // Toggle the muted state of the videos
+      clickedVideo.muted = false;
+      otherVideo.muted = true;
+
+      // Add 'active' class to the clicked button and remove it from the other button
+      clickedButton.classList.add('active');
+      otherButton.classList.remove('active');
+
+      // Change the label of the buttons
+      clickedButton.innerText = isVideo1 ? 'Audio 1 ' + audioButtonTextActive : 'Audio 2 ' + audioButtonTextActive;
+      otherButton.innerText = isVideo1 ? 'Audio 2 ' + audioButtonTextInactive : 'Audio 1 ' + audioButtonTextInactive;
+
+      // log the muted state of the videos
+      console.log('Video 1 muted:', videoEl1.muted);
+      console.log('Video 2 muted:', videoEl2.muted);
+    }
+
+    audio1Button.addEventListener('click', handleAudioButtonClick);
+    audio2Button.addEventListener('click', handleAudioButtonClick);
+
+    function hidePopup() {
+      document.getElementById('popup-container').style.display = 'none';
+    }
+    function showPopup() {
+      document.getElementById('popup-container').style.display = 'block';
+    }
+  </script>
+</body>
+
+</html>

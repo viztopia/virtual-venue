@@ -9,14 +9,14 @@
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1"></script>
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-weight: 200;
     }
 
     .video-container {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      grid-template-rows: 5% 50% 5% 10% auto;
-      /* Add a new row for spacing */
+      grid-template-rows: 5% 50% 1% 10% auto;
       justify-items: center;
       align-items: center;
       height: 100vh;
@@ -26,12 +26,8 @@
       position: relative;
       width: 100%;
       height: 100%;
-      /* display: flex;
-      flex-direction: column;
-      align-items: center; */
       grid-row: 2;
       overflow: hidden;
-      /* Prevent mask from overflowing */
       background-color: #000;
     }
 
@@ -40,7 +36,7 @@
       position: absolute;
       width: 100%;
       height: 100%;
-      /* object-fit: cover; */
+      pointer-events: none;
     }
 
     .mask {
@@ -49,80 +45,203 @@
       left: 0;
       width: 100%;
       height: 100%;
-      /* Make mask slightly taller */
       background: rgba(0, 0, 0, 1);
       transition: opacity 0.5s;
       opacity: 0;
     }
 
     .mask.active {
-      /* Your active state styles here */
       opacity: 0.8;
       cursor: pointer;
+    }
+
+    .mask.active:hover {
+      opacity: 0.6;
     }
 
     #audio1 {
       grid-column: 1;
       grid-row: 4;
-      /* Adjust grid-row */
     }
 
     #audio2 {
       grid-column: 2;
       grid-row: 4;
-      /* Adjust grid-row */
     }
 
     .audio-button {
-      width: 50%;
-      height: 80%;
-      /* Adjust height */
-      background-color: #555;
-      /* Darker gray */
+      justify-self: start;
+      width: 14%;
+      height: 50%;
+      background-color: #313131;
       border: none;
-      color: #fff;
-      /* White text */
-      padding: 15px 32px;
+      color: #919191;
+      padding: 10px 10px;
       text-align: center;
       text-decoration: none;
       display: inline-block;
-      /* font-size: 16px; */
-      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      font-size: calc(0.4vw + 0.4vh + .5vmin);
       margin: 4px 2px;
       border-radius: 4px;
       transition: background-color 0.3s ease;
       cursor: pointer;
     }
 
+    .audio-button:hover {
+      background-color: #4f4d4d;
+    }
+
     .audio-button.active {
-      background-color: #ccc;
-      color: #000;
+      background-color: #7a7a7a;
+      color: #ffffff;
       cursor: default;
     }
 
     .metadata {
-      /* font-family: Arial, sans-serif; */
+      justify-self: start;
+      align-self: start;
       grid-row: 5;
-      /* Adjust grid-row */
-      /* background-color: rgba(0, 0, 0, 0.7); */
-      padding: 10px;
       border-radius: 5px;
       font-size: calc(0.5vw + 0.5vh + .5vmin);
       color: #d1d1d1;
       line-height: 1.5;
+      margin-left: 2px;
     }
 
     .metadata .title {
-      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      font-size: calc(0.6vw + 0.6vh + .6vmin);
+      font-style: italic;
       font-weight: bold;
+      margin: 5px 0;
     }
 
     .metadata .name-country {
       font-size: calc(0.4vw + 0.4vh + .4vmin);
+      margin: 5px 0;
     }
 
     .metadata .content-warning {
       color: #8d3636;
+      margin: 5px 0;
+    }
+
+    .credit-info {
+      position: fixed;
+      bottom: 1%;
+      left: 0;
+      padding: 2px;
+      font-size: calc(0.4vw + 0.4vh + .4vmin);
+      color: #d1d1d1;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    #info-icon {
+      position: fixed;
+      bottom: 3%;
+      right: 4%;
+      transform: translate(50%, 50%);
+      cursor: pointer;
+      font-size: calc(0.4vw + 0.4vh + .4vmin);
+      background-color: #212121;
+      color: rgb(174, 171, 171);
+      padding: 5px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    #info-icon:hover {
+      background-color: #3d3d3d;
+      color: rgb(241, 241, 241);
+    }
+
+    #popup-container {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    #info-popup {
+      background-color: #f2f2f2;
+      color: #333;
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 50%;
+      height: 60vh;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    #info-popup a {
+      color: #ff5c5c;
+      text-decoration: underline;
+    }
+
+    #close-button {
+      background-color: #ff5c5c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      position: fixed;
+      top: calc(50% - 30vh);
+      left: calc(50% + 25%);
+      font-size: 16px;
+    }
+
+    .live-segments {
+      column-count: 2;
+      column-gap: 20px;
+    }
+
+    .video-artists {
+      column-count: 4;
+      column-gap: 20px;
+    }
+
+    .video-artists div {
+      break-inside: avoid;
+      margin-bottom: 20px;
+    }
+
+    h3 {
+      margin-top: 1.5em;
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+      break-inside: avoid;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    #dev-credit {
+      font-size: 12px;
+      color: #333;
+      margin-top: 20px;
+      /* font-style: italic; */
     }
   </style>
 </head>
@@ -133,7 +252,7 @@
       <video id="video"></video>
       <div class="mask" id="mask1"></div>
     </div>
-    <button id="audio1" class="audio-button active">🔊</button>
+    <button id="audio1" class="audio-button active">Audio 1 🔊</button>
     <div id="metadata1" class="metadata">
       <p class="title"></p>
       <p class="name-country"></p>
@@ -143,13 +262,123 @@
       <video id="video2" muted></video>
       <div class="mask active" id="mask2"></div>
     </div>
-    <button id="audio2" class="audio-button">🔇</button>
+    <button id="audio2" class="audio-button">Audio 2 🔇</button>
     <div id="metadata2" class="metadata">
       <p class="title"></p>
       <p class="name-country"></p>
       <p class="content-warning"></p>
     </div>
   </div>
+
+  <div class="credit-info">
+    Re-Fest 2024, <a href="https://www.culturehub.org/" target="_blank">CultureHub</a> <a
+      href="https://www.instagram.com/culturehub_org/" target="_blank">@culturehub_org</a>
+  </div>
+
+  <div id="info-icon" onclick="showPopup()">
+    🛈 About Re-Fest
+  </div>
+
+  <div id="popup-container">
+    <button id="close-button" onclick="hidePopup()">X</button>
+    <div id="info-popup">
+      <h2>Welcome to Re–Fest 2024 presented by CultureHub!</h2>
+
+      <p>There are over 200 video works by artists from 90+ countries that are streaming 24/7 on this website from June
+        5-11.</p>
+
+      <p>Watch on a desktop or laptop (not a smartphone/tablet) using Google Chrome. Two videos will stream side by
+        side. Click on either video player to toggle between them. Select which audio you'd like to hear by clicking the
+        speaker icon. If you experience issues, try to refresh your web browser.</p>
+
+      <p>View all of the artist credits <a href="https://www.culturehub.org/re-fest-2024#refest-2024-artists"
+          target="_blank">here</a>.</p>
+
+      <p>Live segments by international producers will occur daily throughout the weeklong broadcast.</p>
+
+      <div class="live-segments">
+        <ul>
+          <li><strong>June 5</strong><br>
+            13:00 ET | 20:00 EAT<br>
+            <em>Beshte-Beshte “Welcome to the Friend Zone”</em><br>
+            Bold Theatre Kenya <em>NAIROBI, KENYA</em>
+          </li>
+          <li><strong>June 6</strong><br>
+            11:00 ET<br>
+            International Artist Meet-Up<br>
+            All Video Artists
+          </li>
+          <li><strong>June 7</strong><br>
+            12:00 ET | 19:00 EEST<br>
+            <em>Good Morning from Ukraine!</em><br>
+            NASHi Experimental Theatre Club <em>KYIV, UKRAINE</em><br>
+            14:00 ET | 21:00 EEST<br>
+            <em>The Motion of the Image</em><br>
+            Medrar <em>EGYPT</em>
+          </li>
+          <li><strong>June 8</strong><br>
+            13:00 ET | 19:00 CEST<br>
+            <em>“Crystal strings” / Love songs for a Free Palestine</em><br>
+            CultureHub NYC <em>NEW YORK, UNITED STATES</em><br>
+            John King <em>UNITED STATES</em><br>
+            Leyya Mona Tawil <em>UNITED STATES / SYRIA / PALESTINE</em><br>
+            Myriam Nana Henne-Adda <em>MADRID, SPAIN</em><br>
+            Mercedes Klausner <em>ROUBAIX, FRANCE</em><br>
+            20:00 ET | 9:00 KST (Sunday June 9 in Korea)<br>
+            <em>The Field</em><br>
+            CultureHub Korea <em>ANSAN, KOREA</em><br>
+            Cristián Tàpies <em>CHILE</em><br>
+            Luigi Voglino <em>ARGENTINA</em>
+          </li>
+          <li><strong>June 9</strong><br>
+            15:00 ET | 16:00 BRT | 21:00 CEST<br>
+            <em>PRI.MOR.DI.AI</em><br>
+            Terrabytes Glitch Lab <em>BERLIN, GERMANY</em><br>
+            MermaidBro420 <em>GERMANY</em><br>
+            dz. <em>BRAZIL</em><br>
+            19:00 PT | 22:00 ET<br>
+            <em>Hustle House</em><br>
+            CultureHub LA <em>LOS ANGELES, UNITED STATES</em><br>
+            Jessica Emmanual <em>UNITED STATES</em><br>
+            with Tey Johnson, Jobel Medina, Ian Stahl, Dead Secretary <em>UNITED STATES</em>
+          </li>
+          <li><strong>June 10</strong><br>
+            14:00 ET | 20:00 CEST<br>
+            <em>In a blink</em><br>
+            Eho Animato <em>BELGRADE, SERBIA</em>
+          </li>
+          <li><strong>June 11</strong><br>
+            14:00 ET | 11:00 PT<br>
+            <em>على حافة البحر</em><br>
+            Dena Al-Adeeb <em>IRAQ / UNITED STATES</em><br>
+            Sholeh Asgary <em>IRAN / UNITED STATES</em><br>
+            19:00 ET | 20:00 BRT<br>
+            <em>Open Works</em><br>
+            Companhia Nova de Teatro <em>SÃO PAULO, BRAZIL</em>
+          </li>
+        </ul>
+      </div>
+
+      <p>For more information on each segment, click <a
+          href="https://www.culturehub.org/re-fest-2024#refest-2024-schedule" target="_blank">here</a>.</p>
+
+      <p>Tag us on social media @culturehub_org and tell us where you're watching from!</p>
+
+      <p><a href="https://culturehub.us1.list-manage.com/subscribe?u=28913206aad38b2c4c2446a51&id=e3c4814baa"
+          target="_blank">Sign up</a> for CultureHub's weekly newsletter for opportunities, events, & updates from our
+        community!</p>
+
+      <p>Re–Fest is taking place on LiveLab Broadcaster, a browser based low-latency live-streaming platform created by
+        CultureHub that allows for real time interactions with online audiences.</p>
+      <!-- 
+      <p>View credits for LiveLab Broadcaster <a
+          href="https://www.culturehub.org/re-fest-2024#re-fest-2024-live-lab-broadcaster" target="_blank">here</a>.</p> -->
+      <p id="dev-credit">Developers: Aidan Nelson, Shawn Van Every, Yuguang Zhang <br />Online Interactions: Shuang Cai,
+        Tuan Huang</p>
+
+    </div>
+  </div>
+
 
   <script>
     const videoInfo = [
@@ -1017,8 +1246,6 @@
         "title": "Deep Beyond the Visible",
         "contentWarning": ""
       },
-    ];
-    const videoInfo2 = [
       {
         "hlsManifest": "assets/refest2024/109/hls/manifest.m3u8",
         "duration": 420.42,
@@ -1092,6 +1319,14 @@
         "contentWarning": ""
       },
       {
+        "hlsManifest": "assets/refest2024/118/hls/manifest.m3u8",
+        "duration": 496.575,
+        "country": "Berlin, Germany",
+        "name": "Laura Waltz",
+        "title": "A_live,",
+        "contentWarning": ""
+      },
+      {
         "hlsManifest": "assets/refest2024/119/hls/manifest.m3u8",
         "duration": 29.133333,
         "country": "Malta",
@@ -1102,10 +1337,10 @@
       {
         "hlsManifest": "assets/refest2024/120/hls/manifest.m3u8",
         "duration": 599.0,
-        "country": "Denmark",
+        "country": "NEW FILE!!! Denmark",
         "name": "Magnus Pind",
         "title": "Scans",
-        "contentWarning": ""
+        "contentWarning": "blinking lights"
       },
       {
         "hlsManifest": "assets/refest2024/121/hls/manifest.m3u8",
@@ -1155,6 +1390,8 @@
         "title": "A Game of Good Citizens",
         "contentWarning": ""
       },
+    ];
+    const videoInfo2 = [
       {
         "hlsManifest": "assets/refest2024/127/hls/manifest.m3u8",
         "duration": 853.466667,
@@ -1732,6 +1969,14 @@
         "contentWarning": ""
       },
       {
+        "hlsManifest": "assets/refest2024/199/hls/manifest.m3u8",
+        "duration": 163.916667,
+        "country": "Slovenia",
+        "name": "Saša Nemec",
+        "title": "Inside/Outside",
+        "contentWarning": ""
+      },
+      {
         "hlsManifest": "assets/refest2024/200/hls/manifest.m3u8",
         "duration": 25.458667,
         "country": "Turkey",
@@ -1874,6 +2119,286 @@
         "name": "Banna Desta",
         "title": "Addis Ababa",
         "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/218/hls/manifest.m3u8",
+        "duration": 95.039,
+        "country": "Suriname",
+        "name": "Ruben Cabenda",
+        "title": "tongo sondi",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/219/hls/manifest.m3u8",
+        "duration": 170.9708,
+        "country": "Mauritius",
+        "name": "Mati Jhurry",
+        "title": "tropical cheeks (warning signs)",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/220/hls/manifest.m3u8",
+        "duration": 61.44,
+        "country": "Bahrain",
+        "name": "Omnia Elamir",
+        "title": "My Doll's House",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/221/hls/manifest.m3u8",
+        "duration": 409.583333,
+        "country": "Syria",
+        "name": "Ruby Caurlette",
+        "title": "Return And Confusion",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/222/hls/manifest.m3u8",
+        "duration": 600.04,
+        "country": "Singapore",
+        "name": "Chian Ying Xuan with Post-Growth Singapore",
+        "title": "humane resources: five ways to thrive in an urban hive",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/223/hls/manifest.m3u8",
+        "duration": 49.933333,
+        "country": "China",
+        "name": "Jeanne Li",
+        "title": "Digital Zen, Eternal Flow: Mountains of the Mind",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/224/hls/manifest.m3u8",
+        "duration": 175.0,
+        "country": "Kazakhstan",
+        "name": "Lyazzat Khanim",
+        "title": "fresh film",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/225/hls/manifest.m3u8",
+        "duration": 282.096167,
+        "country": "Austria",
+        "name": "Elsie Dzhan Lappoh",
+        "title": "unBUNNY_0",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/226/hls/manifest.m3u8",
+        "duration": 634.967667,
+        "country": "Kenya",
+        "name": "Fedelis Kyalo",
+        "title": "Gone fishing",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/227/hls/manifest.m3u8",
+        "duration": 598.798208,
+        "country": "Albania",
+        "name": "Aneta Mihali Xhiku",
+        "title": "Mëma's Soul",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/228/hls/manifest.m3u8",
+        "duration": 413.9135,
+        "country": "Germany",
+        "name": "Ana Bilankov",
+        "title": "LOVEMAP",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/229/hls/manifest.m3u8",
+        "duration": 20.958333,
+        "country": "China",
+        "name": "Xinyu Jiang",
+        "title": "You are Surrounding Me",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/230/hls/manifest.m3u8",
+        "duration": 20.12,
+        "country": "Kazakhstan",
+        "name": "Aldiyar Abugalysina",
+        "title": "Täñır",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/231/hls/manifest.m3u8",
+        "duration": 621.866667,
+        "country": "England",
+        "name": "Clover",
+        "title": "N.S.E.W",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/232/hls/manifest.m3u8",
+        "duration": 129.75,
+        "country": "Poland",
+        "name": "Łukasz Horbów",
+        "title": "3 acts",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/233/hls/manifest.m3u8",
+        "duration": 83.285,
+        "country": "Switzerland",
+        "name": "Frank Serge Lehmann",
+        "title": "Good Morning Mr President",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/234/hls/manifest.m3u8",
+        "duration": 300.0,
+        "country": "Finland",
+        "name": "Eoin O'Dowd",
+        "title": "Tama",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/235/hls/manifest.m3u8",
+        "duration": 156.189375,
+        "country": "Egypt, Germany",
+        "name": "Rym Jalil",
+        "title": "Beles Stealing Beles",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/236/hls/manifest.m3u8",
+        "duration": 186.0,
+        "country": "Austria",
+        "name": "Ramiro Wong",
+        "title": "What have I escaped? Where, anyway, would I go escape?*",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/237/hls/manifest.m3u8",
+        "duration": 212.0,
+        "country": "Austria",
+        "name": "Auratyk",
+        "title": "Season Ending",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/238/hls/manifest.m3u8",
+        "duration": 218.918708,
+        "country": "Japan",
+        "name": "Hyugo Takeda",
+        "title": "Pretend Game",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/239/hls/manifest.m3u8",
+        "duration": 72.766667,
+        "country": "Singapore",
+        "name": "Valent Tan",
+        "title": "Cryptosphere [Future in 2050: A Solarpunk Aesthetic]",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/240/hls/manifest.m3u8",
+        "duration": 600.0,
+        "country": "Russia",
+        "name": "Papierfilm",
+        "title": "Kino-chronicle Reduction",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/241/hls/manifest.m3u8",
+        "duration": 542.8,
+        "country": "United Kingddom",
+        "name": "MOSS \\ YAFAI DANCE",
+        "title": "BLOWN AWAY | In Preview",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/242/hls/manifest.m3u8",
+        "duration": 248.44,
+        "country": "Japan, Brazil",
+        "name": "Anais-karenin",
+        "title": "Great Rumble",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/243/hls/manifest.m3u8",
+        "duration": 159.033333,
+        "country": "China",
+        "name": "Shiqing Chen",
+        "title": "Temporary Space Pt.1",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/244/hls/manifest.m3u8",
+        "duration": 175.28,
+        "country": "Germany, South Korea",
+        "name": "Eunjeong Kim",
+        "title": "Floating in painting",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/245/hls/manifest.m3u8",
+        "duration": 161.073322,
+        "country": "Austria",
+        "name": "Luna Maluna Gri",
+        "title": "Flying Free",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/246/hls/manifest.m3u8",
+        "duration": 26.436667,
+        "country": "Brazil",
+        "name": "Clara Eloisa da Fontoura Ungaretti",
+        "title": "The beauty of the Nature, Rio de Janeiro/Brazil",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/247/hls/manifest.m3u8",
+        "duration": 405.571833,
+        "country": "Japan",
+        "name": "Ryota Amaya",
+        "title": "My Requiem",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/248/hls/manifest.m3u8",
+        "duration": 180.0,
+        "country": "Netherlands",
+        "name": "Mathijs Hunfeld",
+        "title": "THIS IS NOT AN EXIT",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/249/hls/manifest.m3u8",
+        "duration": 513.83468,
+        "country": "London",
+        "name": "Faissal El-Malak",
+        "title": "The Lizard of my Dream",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/250/hls/manifest.m3u8",
+        "duration": 600.0,
+        "country": "Italy",
+        "name": "Elena Ghigas",
+        "title": "Beneath the surface of the world",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/251/hls/manifest.m3u8",
+        "duration": 104.0,
+        "country": "France, Germany",
+        "name": "Chloé Desaulles",
+        "title": "i'm so like",
+        "contentWarning": ""
+      },
+      {
+        "hlsManifest": "assets/refest2024/252/hls/manifest.m3u8",
+        "duration": 388.04,
+        "country": "Saudi Arabia",
+        "name": "Nuur Taibah",
+        "title": "Blend In",
+        "contentWarning": ""
       }
     ];
     const videoEl1 = document.getElementById("video");
@@ -1881,6 +2406,9 @@
 
     const videoEl1Wrapper = document.getElementById("video1-wrapper");
     const videoEl2Wrapper = document.getElementById("video2-wrapper");
+
+    const audioButtonTextActive = "🔊";
+    const audioButtonTextInactive = "🔇";
 
     const startTime = new Date(1990, 8, 19, 12, 12, 0);
     let socket = window.parent.socket;
@@ -1900,7 +2428,7 @@
     function calculateServerTimeOffset(serverTime) {
       const clientTime = Date.now();
       const timeOffset = serverTime - clientTime;
-      console.log("Server Time Offset:", timeOffset);
+      // console.log("Server Time Offset:", timeOffset);
       return timeOffset;
     }
 
@@ -1993,7 +2521,8 @@
         titleElement.textContent = videoData.title;
         titleElement.style.fontWeight = 'bold';
 
-        nameCountryElement.textContent = `${videoData.name} (${videoData.country})`;
+        // nameCountryElement.textContent = `${videoData.name} (${videoData.country})`;
+        nameCountryElement.innerHTML = `${videoData.name}<br>${videoData.country}`;
 
         if (videoData.contentWarning) {
           contentWarningElement.textContent = 'Content Warning: ' + videoData.contentWarning;
@@ -2014,41 +2543,47 @@
     const mask2 = document.getElementById("mask2");
 
     function toggleVideos(event) {
-      // console.log('Video was clicked');
-      // // Check which video was clicked
-      // const clickedVideoWrapper = event.currentTarget;
-      // const clickedMask = clickedVideoWrapper.querySelector('.mask');
-
-      // // Only toggle the opacity if the clicked video was masked
-      // if (getComputedStyle(clickedMask).opacity !== '0') {
-      //   // If the clicked video was masked, make it fully visible and mask the other video
-      //   clickedMask.style.opacity = '0';
-      //   (clickedVideoWrapper === videoEl1Wrapper ? mask2 : mask1).style.opacity = '0.8';
-      // }
-
-      console.log('Video was clicked');
       // Check which video was clicked
       const clickedVideoWrapper = event.currentTarget;
+      // console.log('Clicked:', clickedVideoWrapper);
 
-      console.log('Clicked:', clickedVideoWrapper);
+      // Save which video/mask was clicked and which was not
+      const isVideo1 = clickedVideoWrapper === videoEl1Wrapper;
+
       const clickedMask = clickedVideoWrapper.querySelector('.mask');
       // const clickedMask = event.currentTarget;
-      const otherMask = clickedMask === mask1 ? mask2 : mask1;
+      const otherMask = isVideo1 ? mask2 : mask1;
 
       // log the two masks
-      console.log('Clicked Mask:', clickedMask);
-      console.log('Other Mask:', otherMask);
+      // console.log('Clicked Mask:', clickedMask);
+      // console.log('Other Mask:', otherMask);
 
       // Add 'active' class to the other mask and remove it from the clicked mask
       clickedMask.classList.remove('active');
       otherMask.classList.add('active');
 
-      // // Only toggle the opacity if the clicked video was masked
-      // if (getComputedStyle(clickedMask).opacity !== '0') {
-      //   // If the clicked video was masked, make it fully visible and mask the other video
-      //   clickedMask.style.opacity = '0';
-      //   otherMask.style.opacity = '0.8';
-      // }
+      // also toggle the audio buttons and video muted state
+      const clickedVideo = isVideo1 ? videoEl1 : videoEl2;
+      const otherVideo = isVideo1 ? videoEl2 : videoEl1;
+
+      // Toggle the muted state of the videos
+      clickedVideo.muted = false;
+      otherVideo.muted = true;
+
+      // Add 'active' class to the clicked button and remove it from the other button
+      const clickedButton = isVideo1 ? audio1Button : audio2Button;
+      const otherButton = isVideo1 ? audio2Button : audio1Button;
+
+      clickedButton.classList.add('active');
+      otherButton.classList.remove('active');
+
+      // Change the label of the buttons
+      clickedButton.innerText = isVideo1 ? 'Audio 1 ' + audioButtonTextActive : 'Audio 2 ' + audioButtonTextActive;
+      otherButton.innerText = isVideo1 ? 'Audio 2 ' + audioButtonTextInactive : 'Audio 1 ' + audioButtonTextInactive;
+
+      // log the muted state of the videos
+      console.log('Video 1 muted:', videoEl1.muted);
+      console.log('Video 2 muted:', videoEl2.muted);
     }
 
     // Add event listeners to the video wrapper elements
@@ -2064,8 +2599,12 @@
     function handleAudioButtonClick(event) {
       const clickedButton = event.currentTarget;
       const otherButton = clickedButton === audio1Button ? audio2Button : audio1Button;
-      const clickedVideo = clickedButton === audio1Button ? videoEl1 : videoEl2;
-      const otherVideo = clickedButton === audio1Button ? videoEl2 : videoEl1;
+
+      // Save which video was clicked and which was not
+      const isVideo1 = clickedButton === audio1Button;
+
+      const clickedVideo = isVideo1 ? videoEl1 : videoEl2;
+      const otherVideo = isVideo1 ? videoEl2 : videoEl1;
 
 
       // Toggle the muted state of the videos
@@ -2077,17 +2616,23 @@
       otherButton.classList.remove('active');
 
       // Change the label of the buttons
-      clickedButton.innerText = '🔊'; // Volume Up emoji for the active button
-      otherButton.innerText = '🔇'; // Mute emoji for the inactive button
+      clickedButton.innerText = isVideo1 ? 'Audio 1 ' + audioButtonTextActive : 'Audio 2 ' + audioButtonTextActive;
+      otherButton.innerText = isVideo1 ? 'Audio 2 ' + audioButtonTextInactive : 'Audio 1 ' + audioButtonTextInactive;
 
       // log the muted state of the videos
       console.log('Video 1 muted:', videoEl1.muted);
       console.log('Video 2 muted:', videoEl2.muted);
     }
 
-    // Add event listeners to the audio buttons
     audio1Button.addEventListener('click', handleAudioButtonClick);
     audio2Button.addEventListener('click', handleAudioButtonClick);
+
+    function hidePopup() {
+      document.getElementById('popup-container').style.display = 'none';
+    }
+    function showPopup() {
+      document.getElementById('popup-container').style.display = 'block';
+    }
   </script>
 </body>
 

@@ -1,9 +1,11 @@
 param (
     [Parameter(Position=0, Mandatory=$true)]
-    [string]$basePath,
-    [Parameter(Position=1, Mandatory=$true)]
-    [string]$folderName
+    [string]$fullPath
 )
+
+# Get the base path and folder name from the full path
+$basePath = Split-Path $fullPath -Parent
+$folderName = Split-Path $fullPath -Leaf
 
 # 1) Create a folder called refest2024-transcoded
 New-Item -ItemType Directory -Force -Path "$basePath\$folderName-transcoded"

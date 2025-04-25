@@ -77,7 +77,7 @@
       width: 50%;
       height: 80%;
       /* Adjust height */
-      background-color: #555;
+      background-color: #313131;
       /* Darker gray */
       border: none;
       color: #fff;
@@ -87,7 +87,7 @@
       text-decoration: none;
       display: inline-block;
       /* font-size: 16px; */
-      font-size: calc(0.5vw + 0.5vh + .5vmin);
+      font-size: calc(0.8vw + 0.8vh + 0.5vmin);
       margin: 4px 2px;
       border-radius: 4px;
       transition: background-color 0.3s ease;
@@ -95,7 +95,7 @@
     }
 
     .audio-button.active {
-      background-color: #ccc;
+      background-color: #7a7a7a;
       color: #000;
       cursor: default;
     }
@@ -124,6 +124,99 @@
     .metadata .content-warning {
       color: #8d3636;
     }
+
+    #info-icon {
+      position: fixed;
+      bottom: 3%;
+      right: 50%;
+      transform: translate(50%, 50%);
+      cursor: pointer;
+      font-size: 16px;
+      background-color: #333;
+      color: rgb(174, 171, 171);
+      padding: 5px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+
+    #info-icon:hover {
+      background-color: #3d3d3d;
+      color: rgb(241, 241, 241);
+      /* transform: translate(50%, 50%) scale(1.1); */
+    }
+
+    #popup-container {
+      display: block;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+
+    #info-popup {
+      background-color: #f2f2f2; /* Very light gray */
+      color: #333; /* Dark gray */
+      border: 1px solid #ccc;
+      padding: 20px;
+      width: 70%;
+      height: 80vh;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+      box-sizing: border-box;
+    }
+
+    #close-button {
+      background-color: #ff5c5c;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      position: fixed;
+      top: calc(50% - 40vh);
+      /* Align with the top of the info popup */
+      left: calc(50% + 35%);
+      /* Adjust to match the width of the info popup */
+      /* transform: translateY(-50%); */
+      font-size: 16px;
+    }
+
+    .live-segments {
+      column-count: 2;
+      column-gap: 20px;
+    }
+
+    .video-artists {
+      column-count: 4;
+      column-gap: 20px;
+    }
+
+    .video-artists div {
+      break-inside: avoid;
+      margin-bottom: 20px;
+      /* Optional: Adds space between items */
+    }
+
+    h3 {
+      margin-top: 1.5em;
+      /* margin-bottom: 0; */
+    }
+
+    ul {
+      padding-left: 20px;
+      margin-top: 0;
+    }
+
+    li {
+      margin-bottom: 10px;
+      break-inside: avoid;
+    }
   </style>
 </head>
 
@@ -150,6 +243,627 @@
       <p class="content-warning"></p>
     </div>
   </div>
+
+  <div id="info-icon" onclick="showPopup()">
+    🛈 About Re-Fest 2024
+  </div>
+
+  <div id="popup-container">
+    <button id="close-button" onclick="hidePopup()">X</button>
+    <div id="info-popup">
+      <h2>Re–Fest June 5-11, 2024</h2>
+      <p>
+        An online broadcast featuring video work and live performances by artists from as many countries/cultures as
+        possible.
+        Re–Fest 2024 is a durational experiment in global participation. CultureHub's annual festival will occur fully
+        online,
+        criss-crossing the globe with a constant stream of short video works interrupted by live segments produced by
+        international partners.
+        The online venue will open on June 5th and be open and accessible 24 hours a day through June 11.
+      </p>
+
+      <h3>How to View Video Works</h3>
+      <p>
+        Click on the videos to toggle the video channel. Click on the speaker icons to toggle the audio channels.
+      </p>
+
+      <h3>Live Segments</h3>
+      <div class="live-segments">
+        <ul>
+          <li><strong>June 5</strong><br>
+            13:00 ET | 20:00 EAT<br>
+            <em>Beshte-Beshte “Welcome to the Friend Zone”</em><br>
+            Bold Theatre Kenya <em>NAIROBI, KENYA</em>
+          </li>
+          <li><strong>June 6</strong><br>
+            11:00 ET<br>
+            International Artist Meet-Up<br>
+            All Video Artists<br>
+            13:00 ET | 20:00 EEST<br>
+            <em>The Motion of the Image</em><br>
+            Medrar <em>EGYPT</em>
+          </li>
+          <li><strong>June 7</strong><br>
+            12:00 ET | 19:00 EEST<br>
+            <em>Good Morning from Ukraine!</em><br>
+            NASHi Experimental Theatre Club <em>KYIV, UKRAINE</em>
+          </li>
+          <li><strong>June 8</strong><br>
+            13:00 ET | 19:00 CEST<br>
+            <em>“Crystal strings” / Love songs for a Free Palestine</em><br>
+            CultureHub NYC <em>NEW YORK, UNITED STATES</em><br>
+            John King <em>UNITED STATES</em><br>
+            Leyya Mona Tawil <em>UNITED STATES / SYRIA / PALESTINE</em><br>
+            Myriam Nana Henne-Adda <em>MADRID, SPAIN</em><br>
+            Mercedes Klausner <em>ROUBAIX, FRANCE</em><br>
+            20:00 ET | 9:00 KST (Sunday June 9 in Korea)<br>
+            <em>The Field</em><br>
+            CultureHub Korea <em>ANSAN, KOREA</em><br>
+            Cristián Tàpies <em>CHILE</em><br>
+            Luigi Voglino <em>ARGENTINA</em>
+          </li>
+          <li><strong>June 9</strong><br>
+            15:00 ET | 16:00 BRT | 21:00 CEST<br>
+            <em>PRI.MOR.DI.AI</em><br>
+            Terrabytes Glitch Lab <em>BERLIN, GERMANY</em><br>
+            MermaidBro420 <em>GERMANY</em><br>
+            dz. <em>BRAZIL</em><br>
+            19:00 PT | 22:00 ET<br>
+            <em>Hustle House</em><br>
+            CultureHub LA <em>LOS ANGELES, UNITED STATES</em><br>
+            Jessica Emmanual <em>UNITED STATES</em><br>
+            with Tey Johnson, Jobel Medina, Ian Stahl, Dead Secretary <em>UNITED STATES</em>
+          </li>
+          <li><strong>June 10</strong><br>
+            14:00 ET | 20:00 CEST<br>
+            <em>In a blink</em><br>
+            Eho Animato <em>BELGRADE, SERBIA</em>
+          </li>
+          <li><strong>June 11</strong><br>
+            14:00 ET | 11:00 PT<br>
+            <em>على حافة البحر</em><br>
+            Dena Al-Adeeb <em>IRAQ / UNITED STATES</em><br>
+            Sholeh Asgary <em>IRAN / UNITED STATES</em><br>
+            19:00 ET | 20:00 BRT<br>
+            <em>Open Works</em><br>
+            Companhia Nova de Teatro <em>SÃO PAULO, BRAZIL</em>
+          </li>
+        </ul>
+      </div>
+
+      <h3>Video Artists</h3>
+      <div class="video-artists">
+        <div>
+          <strong>A'ssia Rai</strong><br><em>Coyote (2024)</em><br>PAKISTAN
+        </div>
+        <div>
+          <strong>Aakarsh Singh</strong><br><em>Abandoned Hotels of Zangsti</em><br>INDIA
+        </div>
+        <div>
+          <strong>Adalet Garmiany</strong><br><em>Contemporary Culture in Conflict Zones I</em><br>IRAQ
+        </div>
+        <div>
+          <strong>Adalet Garmiany</strong><br><em>Contemporary Culture in Conflict Zones II</em><br>IRAQ
+        </div>
+        <div>
+          <strong>Adebayo Seun</strong><br><em>The Assault</em><br>NIGERIA
+        </div>
+        <div>
+          <strong>Ahmed Kamel</strong><br><em>Under Skin - Spiral</em><br>EGYPT, GERMANY
+        </div>
+        <div>
+          <strong>Ainesh Madan and Dayita Nereyeth</strong><br><em>still/moving</em><br>INDIA
+        </div>
+        <div>
+          <strong>àLaLuce & Jcosky</strong><br><em>àLaLuce & Jcosky</em><br>ITALY, UNITED STATES, LEBANON
+        </div>
+        <div>
+          <strong>Alessandro Destro</strong><br><em>STOP RADIOACTIVITY</em><br>ITALY
+        </div>
+        <div>
+          <strong>Alessandro Paiano</strong><br><em>2:22no23</em><br>ENGLAND
+        </div>
+        <div>
+          <strong>Alex Pașca</strong><br><em>Expanding your database</em><br>ROMANIA
+        </div>
+        <div>
+          <strong>Alexandra Dementieva</strong><br><em>Our portraits</em><br>BELGIUM
+        </div>
+        <div>
+          <strong>Alexandre Gnipper e Bruno Lasevicius</strong><br><em>trans form</em><br>BRAZIL
+        </div>
+        <div>
+          <strong>Alfredo Travieso</strong><br><em>Drum Solo</em><br>VENEZUELA
+        </div>
+        <div>
+          <strong>Amir Denzel Hall</strong><br><em>Seasoning</em><br>TRINIDAD AND TOBAGO
+        </div>
+        <div>
+          <strong>Anna Nikaki</strong><br><em>States - Collaging Memories</em><br>GREECE
+        </div>
+        <div>
+          <strong>Anshul Roy</strong><br><em>Rage Against the Archive</em><br>INDIA
+        </div>
+        <div>
+          <strong>Aska Soma</strong><br><em>Algebra</em><br>ÅLAND ISLANDS
+        </div>
+        <div>
+          <strong>Augusto Calçada</strong><br><em>SELFIE-DESTRUCTION</em><br>BRAZIL
+        </div>
+        <div>
+          <strong>Ausín Sáinz</strong><br><em>4 Walls. (4 Paredes)</em><br>SPAIN
+        </div>
+        <div>
+          <strong>Banna Desta</strong><br><em>Addis Ababa</em><br>ETHIOPIA
+        </div>
+        <div>
+          <strong>Batya Gil Margalit</strong><br><em>Tut time</em><br>ISRAEL
+        </div>
+        <div>
+          <strong>Bea Mariano</strong><br><em>Dominion</em><br>PHILIPPINES
+        </div>
+        <div>
+          <strong>Beatie Wolfe</strong><br><em>Smoke and Mirrors</em><br>UNITED KINGDOM, UNITED STATES
+        </div>
+        <div>
+          <strong>Bel Astorga</strong><br><em>Sober and Beautiful</em><br>ARGENTINA
+        </div>
+        <div>
+          <strong>Blerta Kambo</strong><br><em>Heavy Stone</em><br>ALBANIA
+        </div>
+        <div>
+          <strong>BOUGE Alexandra</strong><br><em>MODERN AGRICULTURE, FISH FARMING</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Brian Ratigan</strong><br><em>Non Films Death Archives No. 4</em><br>UNITED STATES, BELGIUM
+        </div>
+        <div>
+          <strong>Brigitte Valobra, Wald, Joseph DeVita</strong><br><em>Suspension</em><br>SPAIN
+        </div>
+        <div>
+          <strong>Bruno Pavić</strong><br><em>The Message</em><br>CROATIA
+        </div>
+        <div>
+          <strong>Caiyi Feng</strong><br><em>We Will Eventually Lose the Ability to Reason 我们终将失去理智</em><br>CHINA
+        </div>
+        <div>
+          <strong>Callon Murphy</strong><br><em>A Honeymoon in Elora</em><br>CANADA
+        </div>
+        <div>
+          <strong>Camilo Londoño Hernández</strong><br><em>Eden</em><br>COLOMBIA, GERMANY
+        </div>
+        <div>
+          <strong>Captain Fiffy</strong><br><em>Wassermusik (Water Music)</em><br>GERMANY, AUSTRIA
+        </div>
+        <div>
+          <strong>Carlo Galbiati</strong><br><em>Le mot couleur</em><br>ITALY
+        </div>
+        <div>
+          <strong>Carlos Silva</strong><br><em>Tierra</em><br>MEXICO
+        </div>
+        <div>
+          <strong>Carol Montealegre</strong><br><em>Deep Beyond the Visible</em><br>COLOMBIA
+        </div>
+        <div>
+          <strong>Casper Plummer</strong><br><em>Look Here</em><br>JAMAICA
+        </div>
+        <div>
+          <strong>CensorBG</strong><br><em>Never Give Up</em><br>GHANA
+        </div>
+        <div>
+          <strong>CHAN CHEUK SZE</strong><br><em>No brightness in the City</em><br>HONG KONG
+        </div>
+        <div>
+          <strong>Chris Pavlakis</strong><br><em>In/Visible</em><br>GREECE
+        </div>
+        <div>
+          <strong>Christian Niccoli</strong><br><em>ZWEI</em><br>GERMANY
+        </div>
+        <div>
+          <strong>Clarissa Ribeiro</strong><br><em>Metachanges Painting (performative data-visualization
+            0001/2024)</em><br>SHANGHAI
+        </div>
+        <div>
+          <strong>Claudix Vanesix</strong><br><em>Amy Camus AR</em><br>PERÚ
+        </div>
+        <div>
+          <strong>Cristián Tàpies Goldenberg</strong><br><em>The blue cage</em><br>SOUTH KOREA
+        </div>
+        <div>
+          <strong>Cyan D'Anjou, Luisa do Amaral, and Sunghoon Song</strong><br><em>Unknowable Certainty:
+            Restlessness</em><br>NETHERLANDS, KOREA, UNITED KINGDOM
+        </div>
+        <div>
+          <strong>Daniel Chong</strong><br><em>I want to be a plant - Chapter 1</em><br>SINGAPORE
+        </div>
+        <div>
+          <strong>Daniel Gianfranceschi</strong><br><em>A Song of Spring</em><br>GERMANY
+        </div>
+        <div>
+          <strong>Daniel Zander</strong><br><em>Sol Alegria Del Mare Alias Yume Nikki</em><br>GERMANY
+        </div>
+        <div>
+          <strong>DARE</strong><br><em>GR-AI-N</em><br>SPAIN
+        </div>
+        <div>
+          <strong>Dasul Kim</strong><br><em>Swimming in the Void</em><br>SOUTH KOREA
+        </div>
+        <div>
+          <strong>Dayita Nereyeth</strong><br><em>moving/still</em><br>INDIA
+        </div>
+        <div>
+          <strong>Dina Khalil & Maya Khalil</strong><br><em>Nostalgia | Sound Design</em><br>EGYPT
+        </div>
+        <div>
+          <strong>Ellen Pearlman</strong><br><em>Language Is Leaving Me, An AI Opera Of The Skin</em><br>UNITED STATES,
+          POLAND, UKRAINE
+        </div>
+        <div>
+          <strong>Ellie Kyungran Heo</strong><br><em>The Ragwort</em><br>UNITED KINGDOM
+        </div>
+        <div>
+          <strong>Eloy Gurucharri</strong><br><em>La mirada de Goya</em><br>SPAIN
+        </div>
+        <div>
+          <strong>Emi Kusano</strong><br><em>Morphing Memory of Neural Fad</em><br>JAPAN
+        </div>
+        <div>
+          <strong>Eneos Çarka</strong><br><em>Where Are You Now?</em><br>ALBANIA
+        </div>
+        <div>
+          <strong>Evans Akanyijuka</strong><br><em>Symbiosis of dreams -Tai tai</em><br>UGANDA
+        </div>
+        <div>
+          <strong>Fabian Krebs</strong><br><em>A Symphony</em><br>SWITZERLAND
+        </div>
+        <div>
+          <strong>Fatemeh Afimoh Kazemi</strong><br><em>Poor Knee; Trigger Finger</em><br>IRAN
+        </div>
+        <div>
+          <strong>Flávio Cardoso</strong><br><em>ALiEN | Room 222 | Fuckin' Globo Luanda 2020</em><br>ANGOLA
+        </div>
+        <div>
+          <strong>Florencia Martinez Aysa</strong><br><em>Caltrop woman</em><br>URUGUAY
+        </div>
+        <div>
+          <strong>Frank Mhina</strong><br><em>Will You Marry Me?, Violence Against Women, Aziza</em><br>TANZANIA
+        </div>
+        <div>
+          <strong>Freddie Reilly</strong><br><em>He Sells Soft Drinks'</em><br>ENGLAND
+        </div>
+        <div>
+          <strong>Genta Habib Pegagan</strong><br><em>+Tomato+</em><br>INDONESIA
+        </div>
+        <div>
+          <strong>Gilberto Polo Pacheco</strong><br><em>El Juego</em><br>VENEZUELA
+        </div>
+        <div>
+          <strong>Giorgio Gerardi</strong><br><em>Driving</em><br>ITALY
+        </div>
+        <div>
+          <strong>Hamza Madfaï</strong><br><em>Eternal Recurrence</em><br>TUNISIA
+        </div>
+        <div>
+          <strong>Harmeet Singh Rahal</strong><br><em>Second-Hand Spectres</em><br>INDIA, UNITED KINGDOM
+        </div>
+        <div>
+          <strong>Harsh Pundit</strong><br><em>ELEMENTAL</em><br>INDIA
+        </div>
+        <div>
+          <strong>He Anna Ren</strong><br><em>Drifted Memories</em><br>CHINA, UNITED STATES
+        </div>
+        <div>
+          <strong>Heiko Kalmbach</strong><br><em>Troubled Mind</em><br>GERMANY
+        </div>
+        <div>
+          <strong>Hesam Rahmani</strong><br><em>Faces without Visage</em><br>IRAN
+        </div>
+        <div>
+          <strong>How to Life: setting your expectations below average</strong><br><em>The Rabbit Hole</em><br>FINLAND
+        </div>
+        <div>
+          <strong>Hyash Tanmoy, Santasil Mallik</strong><br><em>Liminal Visions</em><br>INDIA, UNITED KINGDOM, CANADA
+        </div>
+        <div>
+          <strong>IIOANA & Naoto Hieda</strong><br><em>IIOANA - AQUA PARK (underground demo music
+            video)</em><br>ROMANIA, ESTONIA, JAPAN
+        </div>
+        <div>
+          <strong>Intizor Otaniyozova</strong><br><em>Teaser of "Ashes to Ashes, Dust to Side Chicks</em><br>KAZAKHSTAN
+        </div>
+        <div>
+          <strong>Irena Paskali</strong><br><em>Compassion with the Earth, Inconceivable time</em><br>GERMANY
+        </div>
+        <div>
+          <strong>Irina Tall</strong><br><em>Another world</em><br>BELARUS
+        </div>
+        <div>
+          <strong>Ivanka Apostolova Baskar</strong><br><em>THE PCR SONG</em><br>MACEDONIA
+        </div>
+        <div>
+          <strong>Jan Schekauski</strong><br><em>Back to the Garden of Eden</em><br>GERMANY, KENYA
+        </div>
+        <div>
+          <strong>Jason Zumpano</strong><br><em>GLIDE</em><br>CANADA
+        </div>
+        <div>
+          <strong>Jean-Michel Rolland</strong><br><em>Vaches:Vestiges</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Jennifer Yeung</strong><br><em>THESE FACES</em><br>HONG KONG
+        </div>
+        <div>
+          <strong>Jiatong Yao</strong><br><em>toothopia</em><br>CHINA
+        </div>
+        <div>
+          <strong>Jingyi Chen</strong><br><em>Nature simulation</em><br>CHINA
+        </div>
+        <div>
+          <strong>Jiwon Choi</strong><br><em>IDOL_Boys on Top's Tik Tok</em><br>SEOUL
+        </div>
+        <div>
+          <strong>JMRead</strong><br><em>Hideaway, Local Figurative</em><br>UNITED KINGDOM
+        </div>
+        <div>
+          <strong>Joaquin Arturo Dolera Rosa</strong><br><em>ʎɔuǝɹɐdsuɐɹʇ</em><br>ARGENTINA
+        </div>
+        <div>
+          <strong>Johanna Nulty</strong><br><em>From One To Another</em><br>IRELAND
+        </div>
+        <div>
+          <strong>Johannes Christopher Gerard</strong><br><em>Dream Plant 2</em><br>NETHERLANDS
+        </div>
+        <div>
+          <strong>Jordan Bruce</strong><br><em>PISS IN MY MOUTH</em><br>UNITED KINGDOM
+        </div>
+        <div>
+          <strong>José Godoy</strong><br><em>Reading Circle</em><br>CHILE
+        </div>
+        <div>
+          <strong>Jose Trejo Maya</strong><br><em>Transparencies in Time:</em><br>MEXICO
+        </div>
+        <div>
+          <strong>K K Mallick & Souvik Das</strong><br><em>Road to Qatar</em><br>INDIA
+        </div>
+        <div>
+          <strong>Kei Yamamoto</strong><br><em>We are Migratory Birds.</em><br>JAPAN
+        </div>
+        <div>
+          <strong>Kevork Mourad</strong><br><em>Barbed Wire</em><br>SYRIA
+        </div>
+        <div>
+          <strong>Laura Waltz</strong><br><em>A_live,</em><br>GERMANY
+        </div>
+        <div>
+          <strong>Laurent madravel</strong><br><em>VOIR SANS ETRE VU(ES)</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Lilia Li-Mi-Yan and Katherina Sadovsky</strong><br><em>Where is my plastic bag?</em><br>ARMENIA
+        </div>
+        <div>
+          <strong>Linh Valerie Pham</strong><br><em>A Game of Good Citizens</em><br>VIETNAM
+        </div>
+        <div>
+          <strong>Lívia Sá & Sofia Scharff</strong><br><em>ALAMO</em><br>BRAZIL
+        </div>
+        <div>
+          <strong>Luan Machado - Paris Blues</strong><br><em>“R”</em><br>NETHERLANDS
+        </div>
+        <div>
+          <strong>Luisa Vidales Reina</strong><br><em>self-portrait of the commons</em><br>MEXICO
+        </div>
+        <div>
+          <strong>Mael Audren</strong><br><em>la maison brûle, les oiseaux chantent</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Magnus Pind</strong><br><em>Scans</em><br>DENMARK
+        </div>
+        <div>
+          <strong>Marcelo Kraiser</strong><br><em>Shards</em><br>BRAZIL
+        </div>
+        <div>
+          <strong>Maria (Morra) Kozlitina</strong><br><em>A Nasty Hole</em><br>RUSSIA
+        </div>
+        <div>
+          <strong>Maria Nalbantova</strong><br><em>cleanse</em><br>BULGARIA
+        </div>
+        <div>
+          <strong>Marie Nerland, David A Rios, Volt Bergen, Norway</strong><br><em>A Part and the Whole</em><br>SWEDEN
+        </div>
+        <div>
+          <strong>Marja Knape</strong><br><em>The night logic</em><br>SWEDEN
+        </div>
+        <div>
+          <strong>Marja Viitahuhta and Ánnámáret</strong><br><em>Bálvvosbáiki</em><br>FINLAND
+        </div>
+        <div>
+          <strong>Mark A. Hernandez Motaghy / Janastu</strong><br><em>Sughavazhvu</em><br>INDIA, UNITED STATES
+        </div>
+        <div>
+          <strong>Martín Emiliano Díaz</strong><br><em>Scrollear después de Gaza es un acto de
+            barbarie</em><br>ARGENTINA
+        </div>
+        <div>
+          <strong>Marwen Ben Cheikh</strong><br><em>LUCIDREAM</em><br>TUNISIA
+        </div>
+        <div>
+          <strong>Melisa Yagmur Saydi</strong><br><em>Walking around my head, Sample Text</em><br>TURKEY
+        </div>
+        <div>
+          <strong>Meshal Al-Obaidallah</strong><br><em>IMG_0220: Physical Preservations of a Once Lost-Internet
+            Video</em><br>SAUDI ARABIA
+        </div>
+        <div>
+          <strong>Milica Denković</strong><br><em>Heavy Shots: Severe Period Pain Simulator</em><br>SERBIA
+        </div>
+        <div>
+          <strong>Mohamed Thara</strong><br><em>As Long As I Can Hold My Breath</em><br>FRANCE, MOROCCO
+        </div>
+        <div>
+          <strong>Nanut Thanapornrapee</strong><br><em>This History is Auto-Generated: History Bureau
+            Agent</em><br>THAILAND
+        </div>
+        <div>
+          <strong>Nick Fox-Gieg and Meagan Williams</strong><br><em>Traffic Flow III</em><br>CANADA
+        </div>
+        <div>
+          <strong>NiNi DONGNIER</strong><br><em>Field Record 4: Every Motion is a Ritual</em><br>MONGOLIA
+        </div>
+        <div>
+          <strong>Nuff</strong><br><em>FACETS</em><br>NIGERIA, UNITED KINGDOM
+        </div>
+        <div>
+          <strong>Oleksa Konopelko</strong><br><em>Mutafory Lili</em><br>UKRAINE
+        </div>
+        <div>
+          <strong>ORTA Collective</strong><br><em>ORTA Collective – Zharyqopera Overture «Ң. Ғ. Қ.»</em><br>KAZAKHSTAN
+        </div>
+        <div>
+          <strong>Pauli Bertholon</strong><br><em>Grandma's Son</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Pedro Carcereri</strong><br><em>How close are you to losing control?</em><br>BRAZIL
+        </div>
+        <div>
+          <strong>Pedro Marques Pereira</strong><br><em>Cascata</em><br>PORTUGAL
+        </div>
+        <div>
+          <strong>Pier Alfeo</strong><br><em>LAPSE - The time during which something continues</em><br>ITALY
+        </div>
+        <div>
+          <strong>Pierre Yves Clouin</strong><br><em>Rain Again</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Planeta Sobremesa</strong><br><em>Peixe Fora d'Água (Fish Out of Water)</em><br>BRAZIL
+        </div>
+        <div>
+          <strong>Pouria Kazemi</strong><br><em>The Lost Forgotten Child</em><br>NORWAY
+        </div>
+        <div>
+          <strong>Rafael Arévalo</strong><br><em>Generación zapping, La vida adulta de las efímeras</em><br>PERÚ
+        </div>
+        <div>
+          <strong>Ranadeep Bhattacharyya & Judhajit Bagchi</strong><br><em>Children of the Soil</em><br>INDIA
+        </div>
+        <div>
+          <strong>Rasha Amin</strong><br><em>Solitude 2023</em><br>ITALY
+        </div>
+        <div>
+          <strong>ReVerse Bullets feat. Jamika Ajalon</strong><br><em>Replikant</em><br>GERMANY
+        </div>
+        <div>
+          <strong>Robert Cahen and Nicolas Vérin</strong><br><em>Ceremonies</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Rui Yamaguchi</strong><br><em>Eating Tour For Freedom #2</em><br>TOKYO
+        </div>
+        <div>
+          <strong>S4RA</strong><br><em>R̶A̶V̶E̶</em><br>PORTUGAL
+        </div>
+        <div>
+          <strong>Sahand Sarhaddi</strong><br><em>Slaughter</em><br>IRAN
+        </div>
+        <div>
+          <strong>Salomon Perez</strong><br><em>2 Reels</em><br>PERÚ, PORTUGAL
+        </div>
+        <div>
+          <strong>Salt Salome</strong><br><em>I am not where you think I am. I am where you think I am
+            not</em><br>UKRAINE
+        </div>
+        <div>
+          <strong>Santasil Mallik, Hyash Tanmoy, Aidan W. Syiem</strong><br><em>Meeting ID: 874 0061 7174</em><br>INDIA
+        </div>
+        <div>
+          <strong>Santiago Vitale</strong><br><em>Bleach Kiss</em><br>ARGENTINA
+        </div>
+        <div>
+          <strong>Sergio R. Reyes M.</strong><br><em>Jardín de casa/Home garden and others</em><br>GUATEMALA
+        </div>
+        <div>
+          <strong>Shon Kim</strong><br><em>BOOKOLORBAR: Action</em><br>SOUTH KOREA
+        </div>
+        <div>
+          <strong>Siden Kong</strong><br><em>Reminiscence</em><br>CAMBODIA
+        </div>
+        <div>
+          <strong>Splaces Studio</strong><br><em>DendroSonic</em><br>MALTA
+        </div>
+        <div>
+          <strong>stochastic reverie</strong><br><em>this will remain untitled</em><br>MEXICO, SWEDEN
+        </div>
+        <div>
+          <strong>Stuart Pound</strong><br><em>electron city</em><br>ENGLAND
+        </div>
+        <div>
+          <strong>Suelyn Choo</strong><br><em>Paria's Pearl</em><br>JAMAICA
+        </div>
+        <div>
+          <strong>Twinkle Banerjee</strong><br><em>Home where are you?</em><br>INDIA
+        </div>
+        <div>
+          <strong>Valentin Sismann</strong><br><em>Screensong</em><br>FRANCE
+        </div>
+        <div>
+          <strong>Vic Pereiró</strong><br><em>_DUST_ IS_NOT_DESERT_</em><br>SPAIN
+        </div>
+        <div>
+          <strong>Viviane Roi</strong><br><em>Content Park: Scroll and Get Fed</em><br>TAIWAN
+        </div>
+        <div>
+          <strong>Wac people</strong><br><em>ITA “The world outside”</em><br>NIGERIA
+        </div>
+        <div>
+          <strong>Yalan Wen</strong><br><em>Cascade</em><br>TAIWAN
+        </div>
+        <div>
+          <strong>Yoshihisa Kitamura</strong><br><em>Metamorphose</em><br>JAPAN
+        </div>
+        <div>
+          <strong>Yuchan Cao</strong><br><em>Symphony of being</em><br>AUSTRALIA
+        </div>
+        <div>
+          <strong>Yufan Xie</strong><br><em>Sonarium</em><br>CHINA
+        </div>
+        <div>
+          <strong>Yufan Xie & Angry 5JAR</strong><br><em>Focal Lapse</em><br>CHINA
+        </div>
+        <div>
+          <strong>Yufan Xie & Ziqian Yin</strong><br><em>Geomedia</em><br>CHINA
+        </div>
+        <div>
+          <strong>Yufan Xie, Melvin Lewis, Ziqian Yin, Wei Wu</strong><br><em>Maelstrom</em><br>CHINA
+        </div>
+        <div>
+          <strong>Yuxuan Qi</strong><br><em>Diffused Surface</em><br>CHINA
+        </div>
+        <div>
+          <strong>Zamanbap art</strong><br><em>Winter Theatre</em><br>KYRGYZSTAN
+        </div>
+      </div>
+
+      <h3>LiveLab Broadcaster</h3>
+      <p>
+        Re–Fest takes place in your web browser using LiveLab Broadcaster, a browser based low-latency
+        live-streaming platform that allows for real time interactions with online audiences.
+      </p>
+      <p>
+        The open-source project is supported and used by CultureHub and NYU's Interactive Telecommunications Program. It
+        has been used by CultureHub and La MaMa in the following productions: Take 21 (2022), A Few Deep Breaths (2022),
+        Fractals of Prometheus (2023), Downtown Variety Ukraine Edition (2023), The Scam Auction (2024), and Medea
+        (2024).
+      </p>
+      <p>
+        <a href="https://github.com/AidanNelson/virtual-venue" target="_blank">Visit the Github</a>
+      </p>
+      <!-- <p>
+        <a href="https://www.culturehub.org/re-fest-2024" target="_blank">View Full Video Artists</a>
+      </p>
+      <p>
+        <a href="https://github.com/AidanNelson/virtual-venue" target="_blank">About LiveLab Broadcaster</a>
+      </p> -->
+    </div>
+  </div>
+
 
   <script>
     const videoInfo = [
@@ -1092,6 +1806,14 @@
         "contentWarning": ""
       },
       {
+        "hlsManifest": "assets/refest2024/118/hls/manifest.m3u8",
+        "duration": 496.575,
+        "country": "Berlin, Germany",
+        "name": "Laura Waltz",
+        "title": "A_live,",
+        "contentWarning": ""
+      },
+      {
         "hlsManifest": "assets/refest2024/119/hls/manifest.m3u8",
         "duration": 29.133333,
         "country": "Malta",
@@ -1732,6 +2454,14 @@
         "contentWarning": ""
       },
       {
+        "hlsManifest": "assets/refest2024/199/hls/manifest.m3u8",
+        "duration": 163.916667,
+        "country": "Slovenia",
+        "name": "Saša Nemec",
+        "title": "Inside/Outside",
+        "contentWarning": ""
+      },
+      {
         "hlsManifest": "assets/refest2024/200/hls/manifest.m3u8",
         "duration": 25.458667,
         "country": "Turkey",
@@ -2085,9 +2815,15 @@
       console.log('Video 2 muted:', videoEl2.muted);
     }
 
-    // Add event listeners to the audio buttons
     audio1Button.addEventListener('click', handleAudioButtonClick);
     audio2Button.addEventListener('click', handleAudioButtonClick);
+
+    function hidePopup() {
+      document.getElementById('popup-container').style.display = 'none';
+    }
+    function showPopup() {
+      document.getElementById('popup-container').style.display = 'block';
+    }
   </script>
 </body>
 
